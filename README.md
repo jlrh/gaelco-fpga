@@ -1,5 +1,96 @@
 # gaelco-fpga
 
+🇬🇧 English (below) · [🇪🇸 Español](#español)
+
+FPGA recreations of **Gaelco** arcade boards, built on the
+[**JTFRAME**](https://github.com/jotego/jtframe) framework (Jose Tejada / jotego). Multi-platform
+(MiSTer, Pocket, …) from the same code.
+
+> ⚠️ **Independent project.** It uses jotego's JTFRAME framework (GPLv3) —with all due credit and
+> gratitude— but **it is not a jotego core, nor affiliated with him, nor endorsed by him**. Any bug or
+> limitation is this project's responsibility, not jotego's or JTFRAME's.
+
+## Cores
+
+### World Rally (Gaelco, 1993)
+Top-down racer. Hardware: **MC68000 @12 MHz** + **Dallas DS5002FP** (secure 8051 MCU) + Gaelco custom
+video ASIC (2 tilemaps + sprites) + encrypted VRAM + **OKI MSM6295**.
+
+**Status: playable on MiSTer** — boot, video, audio, DS5002 coprocessor handshake, attract demo and
+gameplay. The DS5002 is implemented with the **mc8051** core (Oregano, bundled with jtframe) adapted to
+the DS5002 timing.
+
+A prebuilt `.rbf` is available in [`releases/`](releases/) — **distributable**: the DS5002 firmware is
+loaded at *runtime* from the `.mra`, it is not baked into the bitstream.
+
+## Build
+
+This repo contains **only the core code** (`cores/wrally/`). The framework and third-party cores
+(jtframe, fx68k, jt6295, mc8051) are **not included**: jtframe provides them.
+
+1. Clone [jtcores](https://github.com/jotego/jtcores) (brings jtframe + fx68k + jt6295 as modules).
+2. Place this repo's `cores/wrally/` inside your jtcores checkout.
+3. Generate the project: `jtcore wrally -mister`.
+4. **Apply the runtime-DS5002 patch** (required for a distributable `.rbf`):
+   `python3 cores/wrally/tools/patch_dallas_runtime.py <jtcores>/cores/wrally/mister/jtwrally_game_sdram.v`
+5. Compile with Quartus.
+
+📋 **Step-by-step details and the reason for the patch in [`BUILD.md`](BUILD.md).**
+
+Core layout:
+```
+cores/wrally/
+├── hdl/    Core Verilog (see hdl/README.md for a per-file description)
+├── cfg/    macros.def, mem.yaml, files.yaml
+├── mra/    .mra definition (how to assemble the ROMs)
+├── syn/    wrally_clk48_96.sdc (timing constraints)
+└── tools/  patch_dallas_runtime.py (runtime DS5002) + mc8051 core regen (ghdl → Verilog)
+```
+
+## ROMs
+
+**Not included** (copyrighted material). Everyone provides the original ROMs of their own board. The
+`.mra` describes how to assemble them.
+
+## Known issues / TODO
+
+The core is **playable**, but a few things remain to polish (they do not block gameplay):
+
+- **Red shadow glitches in the snow stage (Monte Carlo):**
+  - *Roadside beacons*: shown as a solid red bar (on the real PCB / MAME they are imperceptible, barely
+    tinting the white snow). It is the shadow-over-tilemap path.
+  - *Start arch*: red glitches on the right, only in gameplay. MAME itself documents this glitch as a
+    "bogus" priority scheme (no golden reference).
+- **Timing:** ~−9.5 ns setup slack on an mc8051 path (cen-paced, not functional); the SDC multicycle
+  still needs tuning for a timing-clean build.
+
+## Credits
+
+- **JTFRAME**, **jt6295** — Jose Tejada (jotego)
+- **fx68k** (68000 core) — Jared Boone (ijor)
+- **mc8051** — Oregano Systems (via jtframe)
+- **MAME** — hardware reference (`wrally.cpp` driver)
+- Gaelco SA — for releasing the DS5002FP code for emulation
+
+## Acknowledgements
+
+- To **José Tejada (jotego)**, for his fantastic work over so many years and, especially, for his
+  **JTFRAME / jtcore** framework, on which this core is built.
+- To **Sorgelig** and the whole **MiSTer FPGA** project.
+- To the **MiSTer FPGA community** and the **Spanish Telegram channel**.
+- To the **MAME community**, because without their preservation work this core would not be possible.
+- And to **Anthropic**, for **Claude**, which turns a project of this magnitude into almost child's play.
+
+## License
+
+**GPLv3** (see [`LICENSE`](LICENSE)) — required by the jtframe / fx68k / jt6295 dependencies.
+
+---
+
+## Español
+
+🇪🇸 Español · [🇬🇧 English ↑](#gaelco-fpga)
+
 Recreaciones en FPGA de placas arcade de **Gaelco**, construidas sobre el framework
 [**JTFRAME**](https://github.com/jotego/jtframe) (Jose Tejada / jotego). Multi-plataforma
 (MiSTer, Pocket, …) desde el mismo código.
@@ -38,7 +129,7 @@ terceros (jtframe, fx68k, jt6295, mc8051) **no se incluyen**: los aporta jtframe
 Estructura del core:
 ```
 cores/wrally/
-├── hdl/    Verilog del core (wrally_*.v, jtwrally_game.v, wrally_dbg_uart.v, mc8051_regen.v)
+├── hdl/    Verilog del core (ver hdl/README.md para la descripción de cada fichero)
 ├── cfg/    macros.def, mem.yaml, files.yaml
 ├── mra/    definición .mra (cómo ensamblar las ROMs)
 ├── syn/    wrally_clk48_96.sdc (constraints de timing)
