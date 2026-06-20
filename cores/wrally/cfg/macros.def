@@ -81,3 +81,8 @@ JTFRAME_ARY=3
 # -> el 68k lee el DIP Control corrupto en HW. jtframe sube DIPBASE a 20 cuando hay joy1_pos; lo
 # forzamos explicito (+ .mra base="20") para mover los DIP por encima de los bits del joy1_pos.
 JTFRAME_DIPBASE=20
+
+# Quitar el LOGO JT del fondo del menu OSD (macro oficial de jtframe; en sys/osd.sv fuerza
+# logo_enb=1 -> logo_blank=1 -> fondo OSD normal sin el logo). Este core USA jtframe pero es
+# INDEPENDIENTE, no es un core de jotego -> no debe lucir su logo de marca.
+JTFRAME_OSD_NOLOGO

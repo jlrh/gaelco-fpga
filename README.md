@@ -4,6 +4,10 @@ Recreaciones en FPGA de placas arcade de **Gaelco**, construidas sobre el framew
 [**JTFRAME**](https://github.com/jotego/jtframe) (Jose Tejada / jotego). Multi-plataforma
 (MiSTer, Pocket, …) desde el mismo código.
 
+> ⚠️ **Proyecto independiente.** Usa el framework JTFRAME (GPLv3) de jotego —con todo el mérito y
+> agradecimiento— pero **no es un core de jotego ni está afiliado a él ni avalado por él**. Cualquier
+> error o limitación es responsabilidad de este proyecto, no de jotego ni de JTFRAME.
+
 ## Cores
 
 ### World Rally (Gaelco, 1993)
