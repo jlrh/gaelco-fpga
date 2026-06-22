@@ -1,0 +1,40 @@
+# cfg/files.yaml — fuentes del core JTBIOMTOY (Thunder Hoop, Gaelco). jtframe mergea esto
+# con los ficheros del framework (board/sdram/dwnld/slots) y del target.
+# HDL en cores/biomtoy/hdl/. Espejo de WRally SIN los modulos del DS5002 (mc8051/r8051/wrdallas),
+# + el motor de video Tipo-1 nuevo.
+biomtoy:
+  - get:
+    # --- game (contrato jtframe) ---
+    - jtbiomtoy_game.v
+    # --- CPU / placa ---
+    - biomtoy_main.v
+    - biomtoy_addr_decode.v
+    - biomtoy_vram_decrypt.v   # cifrado gaelcrpt (claves 0x0e,0x4228) — adaptado de WRally
+    - biomtoy_iolatch.v        # LS259 outlatch + OKI bank
+    - biomtoy_oki.v
+    - biomtoy_inputs.v
+    - biomtoy_vmem.v           # videoram + screenram + paleta + spriteram (BRAM)
+    # --- video Tipo-1 (gaelco_v.cpp) ---
+    - biomtoy_video_top.v      # timing + compositor tilemap + paleta -> RGB
+    - biomtoy_video.v          # compositor 2 tilemaps con prioridad multipasada (rango)
+    - biomtoy_video_timing.v   # timing H/V + vblank_irq (57.47Hz, a calibrar a 57.42)
+    - biomtoy_tilemap.v        # tilemap 32x32 de tiles 16x16 4bpp, split-pen
+    - biomtoy_palette.v        # xBGR-555
+    - biomtoy_gfx_decode.v     # planar RGN_FRAC(1,4) -> pen 4bpp
+    - biomtoy_sprite_layer.v   # capa de sprites (ping-pong doble buffer)
+    - biomtoy_sprite_engine.v  # sprites 8x8/16x16, line buffer
+    # --- OKI (jt6295, GPLv3) ---
+    - jt6295.v
+    - jt6295_acc.v
+    - jt6295_adpcm.v
+    - jt6295_ctrl.v
+    - jt6295_rom.v
+    - jt6295_serial.v
+    - jt6295_sh_rst.v
+    - jt6295_timing.v
+    # --- 68000 (fx68k, ijor, GPLv3); microrom/nanorom.mem en hdl/ ---
+    - fx68k.sv
+    - fx68kAlu.sv
+    - uaddrPla.sv
+    # --- DTACK + cens del 68000 (copia local, sin freqinfo) ---
+    - biomtoy_68kdtack.v

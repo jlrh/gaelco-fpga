@@ -1,0 +1,40 @@
+# cfg/files.yaml — fuentes del core JTTHOOP (Thunder Hoop, Gaelco). jtframe mergea esto
+# con los ficheros del framework (board/sdram/dwnld/slots) y del target.
+# HDL en cores/thoop/hdl/. Espejo de WRally SIN los modulos del DS5002 (mc8051/r8051/wrdallas),
+# + el motor de video Tipo-1 nuevo.
+thoop:
+  - get:
+    # --- game (contrato jtframe) ---
+    - jtthoop_game.v
+    # --- CPU / placa ---
+    - thoop_main.v
+    - thoop_addr_decode.v
+    - thoop_vram_decrypt.v   # cifrado gaelcrpt (claves 0x0e,0x4228) — adaptado de WRally
+    - thoop_iolatch.v        # LS259 outlatch + OKI bank
+    - thoop_oki.v
+    - thoop_inputs.v
+    - thoop_vmem.v           # videoram + screenram + paleta + spriteram (BRAM)
+    # --- video Tipo-1 (gaelco_v.cpp) ---
+    - thoop_video_top.v      # timing + compositor tilemap + paleta -> RGB
+    - thoop_video.v          # compositor 2 tilemaps con prioridad multipasada (rango)
+    - thoop_video_timing.v   # timing H/V + vblank_irq (57.47Hz, a calibrar a 57.42)
+    - thoop_tilemap.v        # tilemap 32x32 de tiles 16x16 4bpp, split-pen
+    - thoop_palette.v        # xBGR-555
+    - thoop_gfx_decode.v     # planar RGN_FRAC(1,4) -> pen 4bpp
+    - thoop_sprite_layer.v   # capa de sprites (ping-pong doble buffer)
+    - thoop_sprite_engine.v  # sprites 8x8/16x16, line buffer
+    # --- OKI (jt6295, GPLv3) ---
+    - jt6295.v
+    - jt6295_acc.v
+    - jt6295_adpcm.v
+    - jt6295_ctrl.v
+    - jt6295_rom.v
+    - jt6295_serial.v
+    - jt6295_sh_rst.v
+    - jt6295_timing.v
+    # --- 68000 (fx68k, ijor, GPLv3); microrom/nanorom.mem en hdl/ ---
+    - fx68k.sv
+    - fx68kAlu.sv
+    - uaddrPla.sv
+    # --- DTACK + cens del 68000 (copia local, sin freqinfo) ---
+    - thoop_68kdtack.v

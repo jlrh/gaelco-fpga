@@ -1,0 +1,40 @@
+# cfg/files.yaml — fuentes del core JTSQUASH (Squash, Gaelco). jtframe mergea esto
+# con los ficheros del framework (board/sdram/dwnld/slots) y del target.
+# HDL en cores/squash/hdl/. Espejo de WRally SIN los modulos del DS5002 (mc8051/r8051/wrdallas),
+# + el motor de video Tipo-1 nuevo.
+squash:
+  - get:
+    # --- game (contrato jtframe) ---
+    - jtsquash_game.v
+    # --- CPU / placa ---
+    - squash_main.v
+    - squash_addr_decode.v
+    - squash_vram_decrypt.v   # cifrado gaelcrpt (claves 0x0e,0x4228) — adaptado de WRally
+    - squash_iolatch.v        # LS259 outlatch + OKI bank
+    - squash_oki.v
+    - squash_inputs.v
+    - squash_vmem.v           # videoram + screenram + paleta + spriteram (BRAM)
+    # --- video Tipo-1 (gaelco_v.cpp) ---
+    - squash_video_top.v      # timing + compositor tilemap + paleta -> RGB
+    - squash_video.v          # compositor 2 tilemaps con prioridad multipasada (rango)
+    - squash_video_timing.v   # timing H/V + vblank_irq (57.47Hz, a calibrar a 57.42)
+    - squash_tilemap.v        # tilemap 32x32 de tiles 16x16 4bpp, split-pen
+    - squash_palette.v        # xBGR-555
+    - squash_gfx_decode.v     # planar RGN_FRAC(1,4) -> pen 4bpp
+    - squash_sprite_layer.v   # capa de sprites (ping-pong doble buffer)
+    - squash_sprite_engine.v  # sprites 8x8/16x16, line buffer
+    # --- OKI (jt6295, GPLv3) ---
+    - jt6295.v
+    - jt6295_acc.v
+    - jt6295_adpcm.v
+    - jt6295_ctrl.v
+    - jt6295_rom.v
+    - jt6295_serial.v
+    - jt6295_sh_rst.v
+    - jt6295_timing.v
+    # --- 68000 (fx68k, ijor, GPLv3); microrom/nanorom.mem en hdl/ ---
+    - fx68k.sv
+    - fx68kAlu.sv
+    - uaddrPla.sv
+    # --- DTACK + cens del 68000 (copia local, sin freqinfo) ---
+    - squash_68kdtack.v

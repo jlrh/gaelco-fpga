@@ -1,0 +1,47 @@
+# cfg/macros.def — core jtframe JTSQUASH (Squash, Gaelco 1992, hw Tipo-1 gaelco.cpp).
+#
+# Reusa la infra probada de WRally (CLK48 + SDRAM96 + memgen game_sdram).
+# DIFERENCIAS clave vs WRally:
+#   - SIN DS5002/Dallas/MCU (Tipo-1 no lleva coprocesador; la "proteccion" = depender del
+#     refresco ~57.42 Hz, ver gaelco.cpp:26-90). -> sin BRAM PROM, sin handshake, mas simple.
+#   - Paleta xBGR-555 -> JTFRAME_COLORW=5 (WRally era xBRG_444=4).
+#   - Pantalla 320x240 (visarea 0..319 x 16..255), refresh 57.42 Hz.
+#   - Cifrado VRAM gaelcrpt con claves de Squash (0x0e, 0x4228) — mismo algoritmo que WRally.
+#
+# FLUJO: jtcore lee este fichero + cfg/mem.yaml y AUTO-GENERA jtsquash_game_sdram.v (GAMETOP)
+# que instancia hdl/jtsquash_game.v + slots SDRAM + dwnld.
+CORENAME=JTSQUASH
+GAMETOP=jtsquash_game_sdram
+
+# Pantalla: 320x240, ROT0 horizontal. xBGR-555 = 5 bits/canal.
+# WIDTH=320 (visarea completa de MAME 0..319). El hblank ya NO recorta 1 col (fix 2026-06-22).
+JTFRAME_WIDTH=320
+JTFRAME_HEIGHT=240
+JTFRAME_COLORW=5
+
+# pxl_cen/pxl2_cen son SALIDAS del game (las generamos en hdl/jtsquash_game.v). El refresco
+# 57.42 Hz se calibra en el modulo de timing de video (htotal x vtotal x pxlclk). NO definir
+# JTFRAME_PXLCLK (el divisor no-estandar no lo soporta jtframe_pxlcen).
+
+# Botones: 2 (joystick 8-way + 2 botones por jugador).
+JTFRAME_BUTTONS=2
+
+# Reloj: game a 48MHz (clk48), SDRAM a 96MHz (SDRAM96) = camino HW-probado en WRally
+# (rungun/simson/toki). 68000 a 12MHz = clk48/4. OKI ~1MHz.
+JTFRAME_CLK48
+JTFRAME_SDRAM96
+
+# Reparto de la .mra (direccion de BYTE en el stream de descarga):
+#   ba0 = prog 68000  1MB  @0          (th18 even 512KB + th161 odd 256KB padeado)
+#   ba1 = gfx 4MB @0x100000  (REGION 0x400000 = 4 planos RGN_FRAC(1,4) de 1MB c/u:
+#         plano0=c12, plano1=c11, plano2=c10, plano3=c09, cada uno de-interleave [0,2,1,3]x0x40000)
+#   ba2 = OKI samples 1MB  @0x500000
+# (sin PROM: no hay wrdallas/DS5002.)
+JTFRAME_BA1_START=0x100000
+JTFRAME_BA2_START=0x300000
+
+[mister]
+JTFRAME_ARX=4
+JTFRAME_ARY=3
+# Quitar el LOGO JT del fondo del menu OSD (macro oficial jtframe). Core INDEPENDIENTE.
+JTFRAME_OSD_NOLOGO

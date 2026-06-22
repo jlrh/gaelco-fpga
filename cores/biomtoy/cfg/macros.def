@@ -1,0 +1,47 @@
+# cfg/macros.def — core jtframe JTBIOMTOY (Biomechanical Toy, Gaelco 1995, hw Tipo-1 gaelco.cpp).
+#
+# Clonado de THOOP (mismo hw Tipo-1, PCB REF.922804/2). DIFERENCIAS clave vs thoop:
+#   - SIN cifrado de VRAM (config maniacsq: vram_w PLANO, no vram_encrypted_w). -> sin gaelcrpt.
+#   - prog 68000 SIMETRICO: d18 (par 512K) + d16 (impar 512K) -> interleave = 0x100000 EXACTO,
+#     SIN el problema de truncado/padding de thoop (prog asimetrico). .mra prog simple.
+#   - gfx 4MB pero 8 ROMs (h6/j6/h7/j7/h9/j9/h10/j10, 512K c/u) con ROM_CONTINUE -> "weird gfx
+#     ordering" distinto a thoop (4 c-ROMs). De-interleave a CALIBRAR (frontera, como en thoop).
+#   - empty_init, SIN DS5002. Paleta xBGR-555, 320x240 visarea 0..319 x 16..255, refresh 57.42 Hz.
+#
+# FLUJO: jtcore lee este fichero + cfg/mem.yaml y AUTO-GENERA jtbiomtoy_game_sdram.v (GAMETOP)
+# que instancia hdl/jtbiomtoy_game.v + slots SDRAM + dwnld.
+CORENAME=JTBIOMTOY
+GAMETOP=jtbiomtoy_game_sdram
+
+# Pantalla: 320x240, ROT0 horizontal. xBGR-555 = 5 bits/canal.
+# WIDTH=320 (visarea completa de MAME 0..319). El hblank ya NO recorta 1 col (fix 2026-06-22).
+JTFRAME_WIDTH=320
+JTFRAME_HEIGHT=240
+JTFRAME_COLORW=5
+
+# pxl_cen/pxl2_cen son SALIDAS del game (las generamos en hdl/jtbiomtoy_game.v). El refresco
+# 57.42 Hz se calibra en el modulo de timing de video (htotal x vtotal x pxlclk). NO definir
+# JTFRAME_PXLCLK (el divisor no-estandar no lo soporta jtframe_pxlcen).
+
+# Botones: 2 (joystick 8-way + 2 botones por jugador).
+JTFRAME_BUTTONS=2
+
+# Reloj: game a 48MHz (clk48), SDRAM a 96MHz (SDRAM96) = camino HW-probado en WRally
+# (rungun/simson/toki). 68000 a 12MHz = clk48/4. OKI ~1MHz.
+JTFRAME_CLK48
+JTFRAME_SDRAM96
+
+# Reparto de la .mra (direccion de BYTE en el stream de descarga):
+#   ba0 = prog 68000  1MB  @0          (d18 par 512K + d16 impar 512K -> 0x100000 exacto)
+#   ba1 = gfx 4MB @0x100000  (REGION 0x400000 = 4 planos RGN_FRAC(1,4) de 1MB c/u, ensamblados
+#         de 8 ROMs h/j con ROM_CONTINUE; de-interleave a calibrar)
+#   ba2 = OKI samples 1MB  @0x500000   (c1 512K + c3 512K)
+# (sin PROM: no hay wrdallas/DS5002.)
+JTFRAME_BA1_START=0x100000
+JTFRAME_BA2_START=0x500000
+
+[mister]
+JTFRAME_ARX=4
+JTFRAME_ARY=3
+# Quitar el LOGO JT del fondo del menu OSD (macro oficial jtframe). Core INDEPENDIENTE.
+JTFRAME_OSD_NOLOGO

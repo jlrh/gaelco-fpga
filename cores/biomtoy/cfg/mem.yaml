@@ -1,0 +1,38 @@
+# cfg/mem.yaml — subsistema de memoria del core JTBIOMTOY (Thunder Hoop, Gaelco 1992).
+#
+# jtcore (memgen) genera jtbiomtoy_game_sdram.v (GAMETOP): slots SDRAM por banco/bus +
+# jtframe_dwnld. Conecta hdl/jtbiomtoy_game.v por NOMBRE de bus.
+#
+# Reparto = el de la .mra (ver cfg/macros.def). SIN BRAM (no hay DS5002/wrdallas).
+# Las VRAM/paleta/sprite-RAM van DENTRO de jtbiomtoy_game (biomtoy_vmem, BRAM) -> NO aqui.
+#
+# Mapa 68000 (gaelco.cpp biomtoy_map):
+#   0x000000-0x0fffff R   ROM 1MB                         -> bank0 'main' (DW16)
+#   0x100000-0x101fff W   videoram (8KB, descifrado inline)
+#   0x102000-0x103fff W   screenram (8KB, cifrado)
+#   0x108000-0x108007 W   vregs (4x u16 scroll)
+#   0x10800c          W   irqack/watchdog
+#   0x200000-0x2007ff RW  paleta (512 entradas xBGR-555)
+#   0x440000-0x440fff RW  spriteram (4KB)
+#   0x700000/2/4/6    R   DSW2 / DSW1 / P1 / P2
+#   0x70000b/d/f      W   outlatch / OKI bank / OKIM6295
+#   0xff0000-0xffffff RW  work RAM 64KB
+
+sdram:
+  banks:
+    # Bank 0: programa del 68000 (1MB, 16-bit). Bus 'main' (jtframe reserva prog_* para la descarga).
+    - buses:
+        - { name: main, addr_width: 20, data_width: 16 }
+
+    # Bank 1: graficos (4MB, 4bpp planar RGN_FRAC(1,4)). 3 clientes DW32 (4 planos por lectura):
+    #   gfx0 = tilemap L0, gfx1 = tilemap L1, gfxs = sprites. Los 4 planos (1MB c/u) se
+    #   almacenan interleave DW32 -> 1 lectura da {p3,p2,p1,p0}. element index = 20b (1M elementos).
+    #   addr_width=22 (4MB) -> puerto gfx*_addr[21:2] = 20 bits.
+    - buses:
+        - { name: gfx0, addr_width: 22, data_width: 32 }
+        - { name: gfx1, addr_width: 22, data_width: 32 }
+        - { name: gfxs, addr_width: 22, data_width: 32 }
+
+    # Bank 2: muestras del OKI MSM6295 (1MB, 8-bit).
+    - buses:
+        - { name: oki, addr_width: 20, data_width: 8 }

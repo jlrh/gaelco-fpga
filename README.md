@@ -23,6 +23,19 @@ the DS5002 timing.
 A prebuilt `.rbf` is available in [`releases/`](releases/) — **distributable**: the DS5002 firmware is
 loaded at *runtime* from the `.mra`, it is not baked into the bitstream.
 
+### Gaelco Type-1 cores (`gaelco.cpp`): Squash, Thunder Hoop, Biomechanical Toy
+Same hardware family: **MC68000** + Gaelco custom video (2 tilemaps + sprites, 4bpp, xBGR-555) + **OKI
+MSM6295**. **Simpler than World Rally: no DS5002** coprocessor. Built reusing the same infrastructure
+(fx68k, jt6295, jtframe).
+
+- **Squash** (Gaelco, 1992) — 68000 @10 MHz, encrypted VRAM. **Status: playable on MiSTer.**
+- **Thunder Hoop** (Gaelco, 1992) — 68000 @12 MHz, encrypted VRAM, gfx with `[0,2,1,3]` de-interleave.
+  **Status: working on MiSTer** (boot, video, audio).
+- **Biomechanical Toy** (Gaelco, 1994/95) — 68000 @12 MHz, *plain VRAM* (no encryption). **Status:
+  working on MiSTer.**
+
+Prebuilt `.rbf` for each in [`releases/`](releases/). No DS5002 patch needed (they have no MCU).
+
 ## Build
 
 This repo contains **only the core code** (`cores/wrally/`). The framework and third-party cores
@@ -111,6 +124,19 @@ adaptado al timing del DS5002.
 
 Hay un `.rbf` precompilado en [`releases/`](releases/) — **distribuible**: el firmware del DS5002 se
 carga en *runtime* desde el `.mra`, no va horneado en el bitstream.
+
+### Cores Gaelco Tipo-1 (`gaelco.cpp`): Squash, Thunder Hoop, Biomechanical Toy
+Misma familia de hardware: **MC68000** + vídeo custom Gaelco (2 tilemaps + sprites, 4bpp, xBGR-555) +
+**OKI MSM6295**. **Más simples que World Rally: SIN coprocesador DS5002.** Construidos reutilizando la
+misma infraestructura (fx68k, jt6295, jtframe).
+
+- **Squash** (Gaelco, 1992) — 68000 @10 MHz, VRAM cifrada. **Estado: jugable en MiSTer.**
+- **Thunder Hoop** (Gaelco, 1992) — 68000 @12 MHz, VRAM cifrada, gfx con de-interleave `[0,2,1,3]`.
+  **Estado: funcionando en MiSTer** (arranque, vídeo, audio).
+- **Biomechanical Toy** (Gaelco, 1994/95) — 68000 @12 MHz, *VRAM plana* (sin cifrado). **Estado:
+  funcionando en MiSTer.**
+
+`.rbf` precompilado de cada uno en [`releases/`](releases/). No necesitan el parche del DS5002 (no llevan MCU).
 
 ## Construir
 

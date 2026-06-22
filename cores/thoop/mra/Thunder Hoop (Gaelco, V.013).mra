@@ -1,0 +1,59 @@
+<!-- Thunder Hoop (Gaelco, 1992) — set 'thoop'. JTTHOOP (jtframe), hw Tipo-1 gaelco.cpp (sin DS5002).
+     V.013 — FIX del MAPEO DE BANCOS (2026-06-22). Causa del fallo HW (sin sonido + sin gradiente):
+     el interleave de mra2rom ROMPE cuando la parte mas CORTA se agota (th161=256K), asi que el prog
+     salia 0x80000 en vez de 0x100000 -> gfx y oki DESPLAZADOS (gfx caia en el banco del prog, oki sin
+     alinear). Ademas se PERDIA la mitad superior de th18 (datos reales). FIX: el prog se ensambla en DOS
+     bloques interleave para incluir TODO th18 (par 512K) y llegar EXACTO a 0x100000:
+       bloque1 = th18[0:0x40000] x th161  -> 0x80000
+       bloque2 = th18[0x40000:0x80000] x th161(relleno, byte impar superior = don't-care) -> 0x80000
+     Validado con replica del algoritmo de mra2rom: prog@0 gfx@0x100000 oki@0x500000, total 6MB.
+     Layout SDRAM (cfg/macros.def): ba0 prog 1MB @0 ; ba1 gfx 4MB @0x100000 ; ba2 oki 1MB @0x500000.
+     gfx: 4 planos (c12,c11,c10,c09) DW32, de-interleave [0,2,1,3] LO HACE EL RTL (rom_a swap 18<->19).
+-->
+<misterromdescription>
+    <rbf>jtthoop</rbf>
+    <name>Thunder Hoop (Gaelco, V.013)</name>
+    <setname>thoop</setname>
+    <year>1992</year>
+    <manufacturer>Gaelco</manufacturer>
+    <players>2</players>
+    <buttons>2</buttons>
+    <rotation>horizontal</rotation>
+    <region>World</region>
+
+    <rom index="0" zip="thoop.zip" type="merged" md5="none">
+        <!-- 0x000000: prog 68000 (1MB). th18=byte par(ALTO) map=10, th161=byte impar(BAJO) map=01.
+             DOS bloques para incluir TODO th18 (el interleave de mra2rom trunca a la parte mas corta). -->
+        <interleave output="16">
+            <part name="th18dea1.040" crc="59bad625" length="0x40000" map="10"/>
+            <part name="th161eb4.020" crc="6add61ed" map="01"/>
+        </interleave>
+        <interleave output="16">
+            <part name="th18dea1.040" crc="59bad625" offset="0x40000" length="0x40000" map="10"/>
+            <part name="th161eb4.020" crc="6add61ed" map="01"/>
+        </interleave>
+        <!-- 0x100000: gfx 4MB. 4 planos (c12,c11,c10,c09) DW32 (de-interleave [0,2,1,3] en RTL). -->
+        <interleave output="32">
+            <part name="c12" crc="29a5ca36" map="0001"/>
+            <part name="c11" crc="7403ef7e" map="0010"/>
+            <part name="c10" crc="2d227085" map="0100"/>
+            <part name="c09" crc="06f0edbf" map="1000"/>
+        </interleave>
+        <!-- 0x500000: OKI samples 1MB -->
+        <part name="sound" crc="99f80961"/>
+    </rom>
+
+    <!-- DIP switches (gaelco.cpp INPUT_PORTS thoop). DSW1=byte bajo, DSW2=byte alto (thoop_inputs). -->
+    <switches default="ff,ff" base="16">
+        <dip name="Coin A" bits="0,3" ids="4C/1C,3C/1C,2C/1C,1C/1C,1C/2C,1C/3C,1C/4C,1C/6C"/>
+        <dip name="Coin B" bits="4,7" ids="4C/1C,3C/1C,2C/1C,1C/1C,1C/2C,1C/3C,1C/4C,1C/6C"/>
+        <dip name="Difficulty" bits="8,9" ids="Hardest,Hard,Normal,Easy"/>
+        <dip name="Player Controls" bits="10" ids="1 Joystick,2 Joysticks"/>
+        <dip name="Lives" bits="11,12" ids="1,2,3,4"/>
+        <dip name="Demo Sounds" bits="13" ids="On,Off"/>
+        <dip name="Cabinet" bits="14" ids="Cocktail,Upright"/>
+        <dip name="Service Mode" bits="15" ids="On,Off"/>
+    </switches>
+
+    <buttons names="Button 1,Button 2,Start,Coin,Pause" default="A,B,R,Select,Start" count="2"/>
+</misterromdescription>

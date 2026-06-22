@@ -1,0 +1,59 @@
+<!-- Biomechanical Toy (Gaelco, 1995) — set 'biomtoy'. JTBIOMTOY (jtframe), hw Tipo-1 gaelco.cpp (config maniacsq).
+     Clonado de thoop. DIFERENCIAS: prog SIMETRICO (d18+d16 512K c/u -> 0x100000 exacto, sin padding),
+     SIN cifrado de VRAM. gfx 4MB de 8 ROMs (h/j): cada plano k = j_k(0:0x80000) ++ h_k(0x80000:0x100000);
+     se cargan en 2 secciones DW32 (seccion j + seccion h). El de-interleave [0,2,1,3] (swap bit18<->19) lo
+     hace el RTL (igual que thoop) para leer el orden logico de MAME (RGN_FRAC, ROM_CONTINUE).
+     Layout SDRAM: ba0 prog 1MB @0 ; ba1 gfx 4MB @0x100000 ; ba2 oki 1MB @0x500000.
+     Planos: plano0=j6/h6, plano1=j7/h7, plano2=j9/h9, plano3=j10/h10 (RGN_FRAC(0..3,4)).
+-->
+<misterromdescription>
+    <rbf>jtbiomtoy</rbf>
+    <name>Biomechanical Toy (Gaelco, V.001)</name>
+    <setname>biomtoy</setname>
+    <year>1995</year>
+    <manufacturer>Gaelco</manufacturer>
+    <players>2</players>
+    <buttons>2</buttons>
+    <rotation>horizontal</rotation>
+    <region>World</region>
+
+    <rom index="0" zip="biomtoy.zip" type="merged" md5="none">
+        <!-- 0x000000: prog 68000 (1MB). SIMETRICO: d18=byte par(ALTO) map=10, d16=byte impar(BAJO) map=01.
+             Ambos 512K -> interleave = 0x100000 EXACTO (sin truncado ni padding, a diferencia de thoop). -->
+        <interleave output="16">
+            <part name="d18" crc="4569ce64" map="10"/>
+            <part name="d16" crc="739449bd" map="01"/>
+        </interleave>
+        <!-- 0x100000: gfx 4MB. 2 secciones DW32. Seccion j = planos[0:0x80000]; seccion h = planos[0x80000:].
+             byte0=plano0, byte1=plano1, byte2=plano2, byte3=plano3. De-interleave [0,2,1,3] en RTL. -->
+        <interleave output="32">
+            <part name="j6"  crc="e923728b" map="0001"/>
+            <part name="j7"  crc="0e18fac2" map="0010"/>
+            <part name="j9"  crc="1c93f050" map="0100"/>
+            <part name="j10" crc="8e3e96cc" map="1000"/>
+        </interleave>
+        <interleave output="32">
+            <part name="h6"  crc="9416a729" map="0001"/>
+            <part name="h7"  crc="9c984d7b" map="0010"/>
+            <part name="h9"  crc="8c1f6718" map="0100"/>
+            <part name="h10" crc="aca1702b" map="1000"/>
+        </interleave>
+        <!-- 0x500000: OKI samples 1MB (c1 512K + c3 512K). -->
+        <part name="c1" crc="0f02de7e"/>
+        <part name="c3" crc="914e4bbc"/>
+    </rom>
+
+    <!-- DIP switches (gaelco.cpp INPUT_PORTS biomtoy). DSW1=byte bajo (coinage), DSW2=byte alto. -->
+    <switches default="ff,ff" base="16">
+        <!-- DSW1 (coinage) - estandar gaelco -->
+        <dip name="Coin A" bits="0,3" ids="4C/1C,3C/1C,2C/1C,1C/1C,1C/2C,1C/3C,1C/4C,1C/6C"/>
+        <dip name="Coin B" bits="4,7" ids="4C/1C,3C/1C,2C/1C,1C/1C,1C/2C,1C/3C,1C/4C,1C/6C"/>
+        <!-- DSW2 (bit8.. = byte alto) -->
+        <dip name="Service Mode" bits="8" ids="On,Off"/>
+        <dip name="Demo Sounds" bits="11" ids="Off,On"/>
+        <dip name="Lives" bits="12,13" ids="4,3,2,1"/>
+        <dip name="Difficulty" bits="14,15" ids="Hardest,Hard,Normal,Easy"/>
+    </switches>
+
+    <buttons names="Button 1,Button 2,Start,Coin,Pause" default="A,B,R,Select,Start" count="2"/>
+</misterromdescription>

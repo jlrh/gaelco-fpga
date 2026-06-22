@@ -1,0 +1,49 @@
+<!-- Squash (Gaelco, 1992) — set 'squash'. JTSQUASH (jtframe), hw Tipo-1 gaelco.cpp (sin DS5002).
+     ⚠️ BEST-EFFORT v1 — la SECCION GFX puede necesitar CALIBRACION EN HW. En SIM se valida con PRECARGA.
+     Layout SDRAM (cfg/macros.def): ba0 prog 1MB @0 ; ba1 gfx 2MB @0x100000 ; ba2 oki 512K @0x300000.
+     ROM_START(squash): maincpu d18(even 128K)+d16(odd 128K) ; gfx c12/c11/c10/c09 (512K c/u, SIN de-interleave,
+     ROM_LOAD directo) ; oki d01 512K. Claves descifrado 0x0f/0x4228. Orden planos core: pen[0]=c09..pen[3]=c12.
+     Diferencias vs thoop: 68k 10MHz, claves 0x0f, force_high 0x3c, gfx 2MB sin de-interleave.
+-->
+<misterromdescription>
+    <rbf>jtsquash</rbf>
+    <name>Squash (Gaelco, V.010)</name>
+    <setname>squash</setname>
+    <year>1992</year>
+    <manufacturer>Gaelco</manufacturer>
+    <players>2</players>
+    <buttons>2</buttons>
+    <rotation>horizontal</rotation>
+    <region>World</region>
+
+    <rom index="0" zip="squash.zip" type="merged" md5="none">
+        <!-- 0x000000: prog 68000 (256K en 1MB). d18=byte par(ALTO) map=10, d16=byte impar(BAJO) map=01. -->
+        <interleave output="16">
+            <part name="squash.d18" crc="ce7aae96" map="10"/>
+            <part name="squash.d16" crc="8ffaedd7" map="01"/>
+        </interleave>
+        <!-- PAD prog 256K -> 0x100000 (BA1_START) para que el gfx ruteе al banco 1 -->
+        <part repeat="0xC0000">00</part>
+        <!-- 0x100000: gfx 2MB. 4 planos (c12,c11,c10,c09) DW32, SIN de-interleave (ROM_LOAD directo). -->
+        <interleave output="32">
+            <part name="squash.c12" crc="5c440645" map="0010"/>
+            <part name="squash.c11" crc="9e19694d" map="0001"/>
+            <part name="squash.c10" crc="892a035c" map="1000"/>
+            <part name="squash.c09" crc="0bb91c69" map="0100"/>
+        </interleave>
+        <!-- 0x300000: OKI samples 512K -->
+        <part name="squash.d01" crc="a1b9651b"/>
+    </rom>
+
+    <switches default="ff,ff" base="16">
+        <dip name="Coin A" bits="0,3" ids="4C/1C,3C/1C,2C/1C,1C/1C,1C/2C,1C/3C,1C/4C,1C/6C"/>
+        <dip name="Coin B" bits="4,7" ids="4C/1C,3C/1C,2C/1C,1C/1C,1C/2C,1C/3C,1C/4C,1C/6C"/>
+        <dip name="Difficulty" bits="8,10" ids="0,1,2,3,4,5,6,7"/>
+        <dip name="2 Players Continue" bits="11" ids="Off,On"/>
+        <dip name="Number of Faults" bits="12,13" ids="5,4,3,2"/>
+        <dip name="Demo Sounds" bits="14" ids="On,Off"/>
+        <dip name="Service Mode" bits="15" ids="On,Off"/>
+    </switches>
+
+    <buttons names="Button 1,Button 2,Start,Coin,Pause" default="A,B,R,Select,Start" count="2"/>
+</misterromdescription>
