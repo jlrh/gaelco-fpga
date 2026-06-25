@@ -103,10 +103,15 @@ module squash_sprite_engine (
 `else
     wire [3:0] wpen = pen;
 `endif
+    // FIRST WRITE WINS = prioridad sprite-vs-sprite de MAME: prio_transpen hace pmask|=1<<31 y priority=31
+    //   en cada pixel no-transparente -> el PRIMER sprite (i mas ALTO, dibujado antes) reclama el pixel; los
+    //   posteriores (i menor) NO lo sobreescriben. => no pisar un pixel cuyo pen ya != 0. (Antes: last-wins, bug.)
+    wire [12:0] lb_cur   = wbank_r ? lb1[lb_wa] : lb0[lb_wa];
+    wire        lb_empty = (lb_cur[3:0] == 4'd0);
     always @(posedge clk) if (ce) begin
         if (state==CLR) begin
             if (wbank_r) lb1[clr_i[8:0]] <= 13'd0; else lb0[clr_i[8:0]] <= 13'd0;
-        end else if (state==PWR && (wpen != 4'd0) && xin) begin
+        end else if (state==PWR && (wpen != 4'd0) && xin && lb_empty) begin
             if (wbank_r) lb1[lb_wa] <= {prio_r, color_r, wpen};
             else         lb0[lb_wa] <= {prio_r, color_r, wpen};
         end

@@ -21,11 +21,15 @@ module jtsquash_game(
     // Logica del juego a clk48; SDRAM (slots) a clk=clk96 (JTFRAME_SDRAM96). Igual que WRally.
     wire clkg = clk48;
 
-    // pxl_cen = clk48/6 = 8 MHz (par -> spacing limpio para el scaler). pxl2_cen = clk48/3 = 16 MHz.
+    // pxl_cen = clk48/8 = 6 MHz (par -> spacing limpio para el scaler). pxl2_cen = clk48/4 = 12 MHz.
+    // 2026-06-25 FIX GEOMETRIA CRT: bajado de /6 (8MHz, HTOTAL=512, activo 62.5% -> bandas laterales) a
+    //   /8 (6MHz). Con HTOTAL=384 en el video_timing -> hsync 15.625kHz IGUAL, pero activo 320/384=83.3%
+    //   -> llena la pantalla (ref. Final Fight/Dead Connection). Periodo de linea = 64us SIN cambiar ->
+    //   presupuesto del motor de sprites por scanline intacto. /8 par -> pxl2_cen limpio.
     reg [2:0] pxdiv = 3'd0;
-    always @(posedge clkg) pxdiv <= (pxdiv==3'd5) ? 3'd0 : pxdiv + 3'd1;
+    always @(posedge clkg) pxdiv <= (pxdiv==3'd7) ? 3'd0 : pxdiv + 3'd1;
     assign pxl_cen  = (pxdiv==3'd0);
-    assign pxl2_cen = (pxdiv==3'd0) || (pxdiv==3'd3);
+    assign pxl2_cen = (pxdiv==3'd0) || (pxdiv==3'd4);
     wire ce_pix = (pxdiv==3'd0);
 
     // OKI ~1 MHz = clk48/48.

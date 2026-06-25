@@ -102,8 +102,21 @@ module squash_video_top #(
     wire [3:0] spr_pen   = spr_sr[SPN+1][3:0];           // pen alineado con palb_q
     wire [4:0] rs5, gs5, bs5;
     squash_palette u_spal (.pal_word(palb_q), .r(rs5), .g(gs5), .b(bs5));
-    // mezcla: el sprite tapa al tilemap si su pen != 0 (prioridad fina = pendiente calibrar vs atraccion).
-    wire spr_show = (spr_pen != 4'd0);
+    // mezcla SPRITE-vs-TILEMAP con SANDWICHING (screen_update_squash, gaelco_v.cpp): el sprite (dibujado al
+    //   final) se OCLUYE donde el tilemap GANADOR tiene rango >= umbral(prioridad del sprite). Equivale al
+    //   pri_mask de MAME sobre el priority-buffer (cat3=code0 .. cat0=code8 -> rank 0..15):
+    //     pri0 pierde si rank>=12 (cat0) ; pri1 >=10 (cat1-front) ; pri2 >=8 (cat1-back) ; pri3 >=4 (cat2) ; pri4 nunca.
+    //   (color>=0x3c -> pri4 = siempre encima, ya en el sprite_engine.)  ANTES: spr_show=(pen!=0) = SIEMPRE encima
+    //   -> la publicidad no quedaba "dentro de la pantalla" y el marcador de sets (cat0) lo tapaba el sprite.
+    wire [2:0] spr_pri = spr_sr[SPN+1][12:10];
+    reg  [4:0] win_rank_d; reg win_opaque_d;   // alinear win_rank/win_opaque con r5 (pal_index->pal_q = 1 ce)
+    always @(posedge clk) if (ce_pix) begin win_rank_d <= win_rank; win_opaque_d <= win_opaque; end
+    wire [4:0] spr_thresh = (spr_pri==3'd0) ? 5'd12 :
+                            (spr_pri==3'd1) ? 5'd10 :
+                            (spr_pri==3'd2) ? 5'd8  :
+                            (spr_pri==3'd3) ? 5'd4  : 5'd31;   // pri4 = nunca pierde
+    wire spr_occluded = win_opaque_d & (win_rank_d >= spr_thresh);
+    wire spr_show = (spr_pen != 4'd0) & ~spr_occluded;
     wire [4:0] mr = spr_show ? rs5 : r5;
     wire [4:0] mg = spr_show ? gs5 : g5;
     wire [4:0] mb = spr_show ? bs5 : b5;

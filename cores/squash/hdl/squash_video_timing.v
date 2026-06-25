@@ -17,18 +17,21 @@
 
 module squash_video_timing #(
     // Horizontal (en píxeles). HTOTAL = HVIS+HFP+HSW+HBP.
-    // 2026-06-16: ajustado a pixel clock 8 MHz (clk48/6). HTOTAL=512 -> hsync 15.6 KHz (estandar).
-    // VTOTAL=269 -> refresco 8e6/(512*269) = 58.1 Hz. (Antes /7=6.857MHz, HTOTAL=448, VTOTAL=264.)
+    // 2026-06-25 FIX GEOMETRIA CRT (ensanchar + centrar): pixel clock bajado a 6 MHz (clk48/8) y
+    //   HTOTAL=384 -> hsync 6e6/384 = 15.625 kHz (IGUAL, CRT-OK) PERO activo 320/384 = 83.3% de la
+    //   linea (antes 320/512 = 62.5% -> bandas laterales anchas). Llena la pantalla como Final Fight/
+    //   Dead Connection. Porches EQUILIBRADOS (HFP=HBP=18) -> centra (antes HBP=96>>HFP=48 = corrida a
+    //   la derecha). Periodo de linea 64us SIN cambiar -> presupuesto sprite-engine intacto.
     parameter HVIS = 320,
-    // 2026-06-23 FIX CRT 15kHz: HTOTAL=512 (hsync 8e6/512=15.625kHz) + VTOTAL=272 (57.45Hz ~57.42).
-    parameter HFP  = 48,     // front porch
-    parameter HSW  = 48,     // sync width
-    parameter HBP  = 96,     // back porch   (HTOTAL = 320+48+48+96 = 512 -> hsync 15.625 kHz, CRT OK)
-    // Vertical (en líneas). VTOTAL = VVIS+VFP+VSW+VBP.
+    parameter HFP  = 18,     // front porch  (= HBP -> imagen centrada)
+    parameter HSW  = 28,     // sync width   (28/6MHz = 4.67us, estandar)
+    parameter HBP  = 18,     // back porch   (HTOTAL = 320+18+28+18 = 384 -> hsync 6e6/384 = 15.625 kHz)
+    // Vertical (en líneas). VTOTAL = VVIS+VFP+VSW+VBP.  REFRESCO SIN CAMBIAR: 6e6/(384*272) = 57.45 Hz
+    //   (igual que antes 8e6/(512*272); no se toca la velocidad del juego en este fix de geometria).
     parameter VVIS = 240,
     parameter VFP  = 8,
     parameter VSW  = 8,
-    parameter VBP  = 16,     // (VTOTAL = 240+8+8+16 = 272 -> 8e6/(512*272)=57.45Hz; CRT 15.6kHz)
+    parameter VBP  = 16,     // (VTOTAL = 240+8+8+16 = 272 -> 6e6/(384*272) = 57.45 Hz; CRT 15.6 kHz)
     parameter SYNC_ACTIVE = 1'b1   // FIX 0x0 (2026-06-16): jtframe_resync espera hs/vs ACTIVO-ALTO
                                    // (mide el pulso por flanco de SUBIDA: hs_edge=hs&!last_hs, hs_len de
                                    // subida->bajada). Con activo-bajo media el periodo ACTIVO como ancho
