@@ -40,6 +40,12 @@ loaded at *runtime* from the `.mra`, it is not baked into the bitstream.
 ### Biomechanical Toy (Gaelco, 1994/95) — *beta*
 68000 @12 MHz, *plain VRAM* (no encryption). **Status: working on MiSTer (beta).** `jtbiomtoy_V002.rbf`.
 
+### TH Strikes Back / Thunder Hoop 2 (Gaelco, 1994) — *beta*
+68000 @12 MHz + **DS5002FP** coprocessor (passive protection). Plain VRAM (no encryption), Rev-B sprite
+format. The DS5002 firmware is **loaded at runtime from the `.mra`** (`JTFRAME_PROM_START`, like World Rally) —
+**no firmware is included in this repo**. **Status: boots and passes the self-test on MiSTer (beta).**
+Build from source (`cores/thoop2/`) with the firmware supplied by the `.mra`.
+
 ## Build
 
 This repo contains **only the core code** (`cores/wrally/`). The framework and third-party cores
@@ -74,6 +80,7 @@ cores/wrally/
 The cores are playable/working; the items below are polish and do not block gameplay.
 
 ### World Rally
+- ✅ **Refresh rate:** adjusted to ~**60.1 Hz** (`VBP` 19→10, `VTOTAL`=260), closer to the original board.
 - **Red shadow glitches in the snow stage (Monte Carlo):**
   - *Roadside beacons*: shown as a solid red bar (on the real PCB / MAME they are imperceptible, barely
     tinting the white snow). It is the shadow-over-tilemap path.
@@ -84,13 +91,19 @@ The cores are playable/working; the items below are polish and do not block game
 
 ### Squash *(beta)*
 - **Boot/check-screen grid** not fully pixel-perfect (rightmost column + a corner connector).
-- **Layer ordering:** the advertising in the scoreboard and the sets-score display (sprite↔tilemap
-  priority) are not yet in the right order.
+- ✅ **Layer ordering — FIXED:** the scoreboard advertising and the sets-score display (sprite↔tilemap
+  *sandwiching* priority, as in MAME `screen_update_squash`) now render in the correct order.
+- ✅ **CRT geometry:** wider, centred image (6 MHz pixel clock, `HTOTAL`=384 → ~83% active picture,
+  15.625 kHz hsync) so it fills an analog/CRT screen instead of leaving side bands.
 - Various minor graphic glitches.
 
 ### Thunder Hoop *(beta)*
 - **Boot/check-screen grid** adjustment pending.
 - Various minor graphic glitches.
+
+### TH Strikes Back *(beta)*
+- DS5002 firmware loaded at runtime from the `.mra` (no firmware in this repo).
+- Various minor graphic glitches; fine-tuning of video priority/timing pending.
 
 ### Biomechanical Toy *(beta)*
 - **Boot/check-screen grid** adjustment pending.

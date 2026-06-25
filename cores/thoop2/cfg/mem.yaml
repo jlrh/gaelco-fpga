@@ -1,0 +1,50 @@
+# cfg/mem.yaml — subsistema de memoria del core JTTHOOP2 (TH Strikes Back, Gaelco 1994, Tipo-1+DS5002).
+#
+# jtcore (memgen) genera jtthoop2_game_sdram.v (GAMETOP): slots SDRAM por banco/bus + jtframe_dwnld.
+# Conecta hdl/jtthoop2_game.v por NOMBRE de bus.
+#
+# Las VRAM/paleta/sprite-RAM/work-RAM van DENTRO de jtthoop2_game (thoop2_vmem/thoop2_main, BRAM) -> NO aquí.
+# El firmware del DS5002 (32KB) -> BRAM 'dallas' cargada por runtime (mecanismo PROM): se AÑADE en la Fase 5
+# (con JTFRAME_PROM_START en macros.def), igual que aligator. De momento (Fases 1-4) sin bram.
+#
+# Mapa 68000 (gaelco/thoop2.cpp thoop2_map:377):
+#   0x000000-0x0fffff R   ROM 1MB                              -> bank0 'main' (DW16)
+#   0x100000-0x101fff RW  VRAM 8KB (2 tilemaps, PLANA sin cifrar) -> BRAM en el game
+#   0x108000-0x108007 W   vregs (4x u16 scroll)
+#   0x10800c          W   irqack/watchdog (CLR INT6)
+#   0x200000-0x2007ff RW  paleta (1024 entradas xBGR-555)       -> BRAM
+#   0x440000-0x440fff RW  spriteram (4KB)                       -> BRAM
+#   0x700000/2/4/6/8  R   DSW2 / DSW1 / P1 / P2 / SYSTEM
+#   0x70000b/d/f      W   outlatch LS259 / OKI bank / OKIM6295
+#   0xfe0000-0xfe7fff RW  work RAM privada 32KB                 -> BRAM
+#   0xfe8000-0xfeffff RW  work RAM COMPARTIDA con DS5002 32KB    -> BRAM (árbitro 68k/MCU; Fase 5)
+
+sdram:
+  banks:
+    # Bank 0: programa del 68000 (1MB, 16-bit). Bus 'main' (jtframe reserva prog_* para la descarga).
+    - buses:
+        - { name: main, addr_width: 20, data_width: 16 }
+
+    # Bank 1: graficos (8MB, 4bpp). gfx_layout planos {8, 0, RGN_FRAC(1/2)+8, RGN_FRAC(1/2)+0} = "dos
+    #   mitades de 4MB + byteswap16" (= WRally, NO el RGN_FRAC(1,4) de thoop). 3 clientes DW32 (4 planos
+    #   por lectura): gfx0 = tilemap L0, gfx1 = tilemap L1, gfxs = sprites.
+    #   8MB -> addr_width=23 ; puerto gfx*_addr[22:2] = 21 bits (2M elementos).
+    #   ⚠️ La pre-permutación exacta (cook del .mra) se calibra en la Fase 3 con el golden-python.
+    - buses:
+        - { name: gfx0, addr_width: 23, data_width: 32 }
+        - { name: gfx1, addr_width: 23, data_width: 32 }
+        - { name: gfxs, addr_width: 23, data_width: 32 }
+
+    # Bank 2: muestras del OKI MSM6295 (1MB, 8-bit). 0x00000-0x2ffff fijo + 0x30000 banco (16 bancos).
+    - buses:
+        - { name: oki, addr_width: 20, data_width: 8 }
+
+bram:
+  # Firmware del DS5002FP (thoop2_ds5002fp.bin, 32KB). Cargado por el mecanismo PROM de jtframe
+  # (JTFRAME_PROM_START en macros.def). El game lee dallas_addr -> dallas_data (registrada). El cen-gate
+  # del MCU (handshake DS5002) lo hace thoop2_mcu sobre dallas_data. (Camino WRally/aligator.)
+  - name: dallas
+    addr_width: 15
+    data_width: 8
+    prom: true
+    simfile: {}

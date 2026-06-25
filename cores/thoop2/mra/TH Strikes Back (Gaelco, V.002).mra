@@ -1,0 +1,59 @@
+<!-- TH Strikes Back / Thunder Hoop 2 (Gaelco, 1994) — set 'thoop2b' (contenido de thoop2.zip).
+     Core JTTHOOP2 (jtframe), hw Gaelco Tipo-1 "Rev B" (gaelco/thoop2.cpp) + DS5002FP.
+     V.001 (2026-06-24) — PRIMERA .mra. Para el SMOKE de sim (arranque 68k + escritura VRAM) SIN el
+     DS5002 todavia: el firmware (thoop2_ds5002fp.bin, CRC 6881384d) NO esta en el zip y la PROM no esta
+     cableada aun -> se anade en la Fase 5 (un <part> tras el oki + JTFRAME_PROM_START). Sin MCU el juego
+     no pasa su check de proteccion, pero arranca y escribe VRAM/paleta (objetivo del smoke).
+
+     Layout SDRAM (= cfg/macros.def: BA1=0x100000, BA2=0x900000):
+       0x000000  prog 68000 1MB  (interleave16: c23=ALTO map=10 / c22=BAJO map=01, simetrico 2x512K)   -> ba0 (DW16)
+       0x100000  gfx 8MB         (interleave32 two-halves: h8 + h12, map 0012/1200, estilo WRally)       -> ba1 (DW32)
+       0x900000  OKI samples 1MB (th2-c1)                                                                -> ba2 (DW8)
+     CRCs verificados vs el zip: c23=3e465753 c22=837205b7 h8=60328a11 h12=b25c2d3e c1=8fac8c30.
+     OJO (Fase 3): el map exacto del gfx (orden de mitades + asignacion de planos {8,0,1/2+8,1/2+0}) es
+     el grado de libertad a calibrar con el golden-python; para el SMOKE no afecta (gfx no interviene en boot).
+-->
+<misterromdescription>
+    <rbf>jtthoop2</rbf>
+    <name>TH Strikes Back (Gaelco, V.002)</name>
+    <setname>thoop2</setname>
+    <year>1994</year>
+    <manufacturer>Gaelco</manufacturer>
+    <players>2</players>
+    <buttons>3</buttons>
+    <rotation>horizontal</rotation>
+    <region>World</region>
+
+    <rom index="0" zip="thoop2.zip" type="merged" md5="none">
+        <!-- 0x000000: prog 68000 (1MB). c23=byte par(ALTO) map=10, c22=byte impar(BAJO) map=01. Simetrico. -->
+        <interleave output="16">
+            <part name="th2c23.c23" crc="3e465753" map="10"/>
+            <part name="th2c22.c22" crc="837205b7" map="01"/>
+        </interleave>
+        <!-- 0x100000: gfx 8MB. Dos mitades de 4MB (h8 = planos 0/1 ; h12 = planos 2/3) -> DW32 two-halves.
+             map 0021/2100 = interleave NATURAL (word h8 + word h12, sin swap de bytes). CALIBRADO vs golden:
+             render RTL = MAME PIXEL-PERFECTO (SAD 0). (Con 0012/1200 los bytes hi/lo salian swapeados -> tono mal.) -->
+        <interleave output="32">
+            <part name="th2-h8.h8"  crc="60328a11" map="0012"/>
+            <part name="th2-h12.h12" crc="b25c2d3e" map="1200"/>
+        </interleave>
+        <!-- 0x900000: OKI samples 1MB -->
+        <part name="th2-c1.c1" crc="8fac8c30"/>
+        <!-- 0xa00000: firmware DS5002FP 32KB (CRC 6881384d) -> BRAM 'dallas' por PROM (JTFRAME_PROM_START). -->
+        <part name="thoop2_ds5002fp.bin" crc="6881384d"/>
+    </rom>
+
+    <!-- DIP switches (thoop2.cpp INPUT_PORTS thoop2). DSW1=byte bajo (bits 0-7), DSW2=byte alto (bits 8-15). -->
+    <switches default="ff,ff" base="16">
+        <dip name="Coin B" bits="0,2" ids="6C/1C,5C/1C,4C/1C,3C/1C,2C/1C,3C/2C,4C/3C,1C/1C"/>
+        <dip name="Coin A" bits="3,5" ids="3C/4C,2C/3C,1C/6C,1C/5C,1C/4C,1C/3C,1C/2C,1C/1C"/>
+        <dip name="Credit configuration" bits="6" ids="Start 2C/Continue 1C,Start 1C/Continue 1C"/>
+        <dip name="Free Play" bits="7" ids="On,Off"/>
+        <dip name="Difficulty" bits="8,9" ids="Hardest,Hard,Easy,Normal"/>
+        <dip name="Lives" bits="11,12" ids="1,4,3,2"/>
+        <dip name="Demo Sounds" bits="13" ids="Off,On"/>
+        <dip name="Service Mode" bits="15" ids="On,Off"/>
+    </switches>
+
+    <buttons names="Button 1,Button 2,Button 3,Start,Coin,Pause" default="A,B,X,R,Select,Start" count="3"/>
+</misterromdescription>

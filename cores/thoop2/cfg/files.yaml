@@ -1,0 +1,46 @@
+# cfg/files.yaml — fuentes del core JTTHOOP2 (TH Strikes Back, Gaelco 1994). jtframe mergea esto
+# con los ficheros del framework (board/sdram/dwnld/slots) y del target. HDL en cores/thoop2/hdl/.
+#
+# Tipo-1 "Rev B" + DS5002. Vídeo Tipo-1 reusado de thoop, SIN el cifrado VRAM (thoop2 no cifra).
+# Incluye el spine DS5002 (thoop2_mcu/mc8051_regen Oregano + jtframe_ram_rst) = protección PASIVA
+# (firma); el firmware (dallas) se carga en runtime desde el .mra, como WRally. Estado: arranca y
+# pasa el check en MiSTer (BETA). Vídeo Tipo-1 (gaelco_v.cpp Rev B) con prioridad multipasada.
+thoop2:
+  - get:
+    # --- game (contrato jtframe) ---
+    - jtthoop2_game.v
+    # --- CPU / placa (mapa thoop2; SIN cifrado, work/shared RAM 0xfe0000, SYSTEM 0x700008) ---
+    - thoop2_main.v
+    - thoop2_addr_decode.v
+    - thoop2_iolatch.v        # LS259 outlatch + OKI bank
+    - thoop2_oki.v
+    - thoop2_inputs.v
+    - thoop2_vmem.v           # VRAM 8KB (2 tilemaps) + paleta + spriteram (BRAM)
+    # --- video Tipo-1 (gaelco_v.cpp Rev B) ---
+    - thoop2_video_top.v      # timing + compositor tilemap + paleta -> RGB
+    - thoop2_video.v          # compositor 2 tilemaps con prioridad multipasada (8 pasadas)
+    - thoop2_video_timing.v   # timing H/V + vblank_irq (59.24Hz, a calibrar)
+    - thoop2_tilemap.v        # tilemap 32x32 de tiles 16x16 4bpp, split-pen
+    - thoop2_palette.v        # xBGR-555
+    - thoop2_gfx_decode.v     # planar two-halves {8,0,½+8,½+0} (estilo WRally) -> pen 4bpp
+    - thoop2_sprite_layer.v   # capa de sprites (ping-pong doble buffer)
+    - thoop2_sprite_engine.v  # sprites (formato Rev B: size@w0[11], flip@w0[14/15], code 18b)
+    # --- OKI (jt6295, GPLv3) ---
+    - jt6295.v
+    - jt6295_acc.v
+    - jt6295_adpcm.v
+    - jt6295_ctrl.v
+    - jt6295_rom.v
+    - jt6295_serial.v
+    - jt6295_sh_rst.v
+    - jt6295_timing.v
+    # --- 68000 (fx68k, ijor, GPLv3); microrom/nanorom.mem en hdl/ ---
+    - fx68k.sv
+    - fx68kAlu.sv
+    - uaddrPla.sv
+    # --- DTACK + cens del 68000 (copia local, sin freqinfo) ---
+    - thoop2_68kdtack.v
+    # --- DS5002FP (mc8051 Oregano/jtframe, COMPLETO; mismo camino que WRally/aligator) ---
+    - thoop2_mcu.v       # wrapper mc8051 (clon de aligator_mcu): IRAM/SFR + ROM(firmware) + MOVX
+    - mc8051_regen.v     # core mc8051 (VHDL->Verilog)
+    - jtframe_ram_rst.v  # IRAM 256B del wrapper

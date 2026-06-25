@@ -1,0 +1,54 @@
+# cfg/macros.def — core jtframe JTTHOOP2 (TH Strikes Back / Thunder Hoop 2, Gaelco 1994).
+#
+# Hardware Gaelco Tipo-1 "Rev B" (gaelco/thoop2.cpp) + DS5002FP. PCB REF.940411.
+# TESIS: "WRally sin cifrado". Vídeo Tipo-1 (reúso de thoop) + spine DS5002 (reúso de WRally/aligator)
+# − cifrado VRAM (aquí NO hay). Arquitectura: research/THOOP2-ARQUITECTURA.md. Plan: research/THOOP2-PLAN-PASOS.md.
+#
+# DIFERENCIAS clave vs thoop (Tipo-1 original):
+#   - LLEVA DS5002FP (protección por coprocesador, como WRally) -> RAM compartida 0xfe8000/32KB + spine mc8051.
+#   - SIN cifrado VRAM (vram_w = COMBINE_DATA plano, thoop2.cpp:182) -> se ELIMINA la cadena gaelcrpt.
+#   - VRAM ÚNICA de 8KB (0x100000-0x101fff), 2 tilemaps dentro; NO hay screenram (thoop sí tenía).
+#   - 3 botones/jugador + puerto SYSTEM (0x700008) -> JTFRAME_BUTTONS=3.
+#   - Refresco 59.24 Hz (thoop era 57.42). gfx 8MB en 2 mitades (layout WRally, NO RGN_FRAC(1,4)).
+#
+# FLUJO: jtcore lee este fichero + cfg/mem.yaml y AUTO-GENERA jtthoop2_game_sdram.v (GAMETOP)
+# que instancia hdl/jtthoop2_game.v + slots SDRAM + dwnld.
+#
+# ESTADO: Fases 1-4 (CPU+vídeo+audio) SIN el MCU (camino escalonado de aligator). El DS5002 (PROM
+# del firmware + mc8051 + RAM compartida) entra en la Fase 5; se añaden entonces JTFRAME_PROM_START
+# (firmware 32KB tras el oki) y el bloque bram/dallas de mem.yaml.
+CORENAME=JTTHOOP2
+GAMETOP=jtthoop2_game_sdram
+
+# Pantalla: 320x240 (visarea 0..319 x 16..255), ROT0. Paleta xBGR-555 = 5 bits/canal.
+JTFRAME_WIDTH=320
+JTFRAME_HEIGHT=240
+JTFRAME_COLORW=5
+
+# pxl_cen/pxl2_cen son SALIDAS del game (hdl/jtthoop2_game.v). El refresco 59.24 Hz se calibra en
+# el módulo de timing de vídeo (htotal x vtotal x pxlclk). NO definir JTFRAME_PXLCLK.
+
+# Botones: 3 (joystick 8-way + 3 botones por jugador; BTN3 en el puerto SYSTEM).
+JTFRAME_BUTTONS=3
+
+# Reloj: game a 48MHz (clk48), SDRAM a 96MHz (SDRAM96) = camino HW-probado. 68000 a 12MHz = clk48/4.
+# OKI ~1MHz. (prog 1MB + gfx 8MB + oki 1MB = 10MB < 16MB -> SDRAM estándar, sin JTFRAME_SDRAM_LARGE.)
+JTFRAME_CLK48
+JTFRAME_SDRAM96
+
+# Reparto de la .mra (dirección de BYTE en el stream de descarga):
+#   ba0 = prog 68000  1MB  @0          (3.c23 par 512K + 2.c22 impar 512K -> 0x100000, simétrico)
+#   ba1 = gfx 8MB @0x100000            (th2-h8 4MB mitad baja + th2-h12 4MB mitad alta; map .mra 0021/2100)
+#   ba2 = OKI samples 1MB  @0x900000
+#   firmware DS5002 32KB @0xa00000     -> BRAM 'dallas' en runtime (mecanismo PROM, camino WRally/aligator)
+JTFRAME_BA1_START=0x100000
+JTFRAME_BA2_START=0x900000
+
+# Firmware DS5002FP (thoop2_ds5002fp.bin, 32KB) en la .mra @0xa00000 (tras oki) -> BRAM via mecanismo PROM.
+JTFRAME_PROM_START=0xa00000
+
+[mister]
+JTFRAME_ARX=4
+JTFRAME_ARY=3
+# Quitar el LOGO JT del fondo del menú OSD (macro oficial jtframe). Core INDEPENDIENTE.
+JTFRAME_OSD_NOLOGO
