@@ -27,7 +27,7 @@ module wrally_video_timing #(
     parameter VVIS = 232,
     parameter VFP  = 10,
     parameter VSW  = 8,
-    parameter VBP  = 19,     // (VTOTAL = 232+10+8+19 = 269)
+    parameter VBP  = 10,     // (VTOTAL = 232+10+8+10 = 260 -> 60.10 Hz; antes 19 -> 58.1 Hz, 2026-06-25)
     parameter SYNC_ACTIVE = 1'b1   // FIX 0x0 (2026-06-16): jtframe_resync espera hs/vs ACTIVO-ALTO
                                    // (mide el pulso por flanco de SUBIDA: hs_edge=hs&!last_hs, hs_len de
                                    // subida->bajada). Con activo-bajo media el periodo ACTIVO como ancho
