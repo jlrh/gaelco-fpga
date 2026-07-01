@@ -84,6 +84,9 @@ The DS5002 firmware is **loaded at runtime from the `.mra`** — **no firmware i
 `tools/patch_twin_arx.py` (automatic 8:3 aspect in Twin) and compile with `WR2_CEN_FRAC=1` (13/13 MHz) —
 see [`BUILD.md`](BUILD.md). Unlike World Rally / Alligator, **no DS5002 address patch is needed** (the core
 is `SDRAM_LARGE`, so the firmware loads at runtime from the `.mra` without patching).
+> ✅ The `.mra` (**V.014**) builds the 16 MB gfx bank **entirely from the standard `wrally2.zip`** via
+> `<interleave>` directives — **no custom gfx blob** is needed. (Earlier drafts used a pre-built
+> `wrally2_gfx.zip`; that is no longer required.) Video and sound validated on hardware.
 > ⚠️ The romset **must contain the DS5002 firmware** (`wrally2_ds5002fp_sram.bin`); without it the
 > coprocessor has no code and the game does not boot.
 > 🖥️ **Do not ship a `config/wrally2.CFG`**: the factory default (no CFG) boots Left / Original / Normal.
@@ -270,6 +273,9 @@ El firmware del DS5002 se **carga en runtime desde el `.mra`** — **no se inclu
 `tools/patch_twin_arx.py` (8:3 automático en Twin) y compila con `WR2_CEN_FRAC=1` (13/13 MHz) — ver
 [`BUILD.md`](BUILD.md). A diferencia de World Rally / Alligator, **no hace falta parche de dirección del
 DS5002** (el core es `SDRAM_LARGE`, así que el firmware carga en runtime desde el `.mra` sin parchear).
+> ✅ El `.mra` (**V.014**) construye el banco de gfx de 16 MB **enteramente desde el `wrally2.zip` estándar**
+> con directivas `<interleave>` — **no hace falta ningún blob de gfx**. (Borradores anteriores usaban un
+> `wrally2_gfx.zip` pre-generado; ya no es necesario.) Vídeo y sonido validados en hardware.
 > ⚠️ El romset **debe contener el firmware del DS5002** (`wrally2_ds5002fp_sram.bin`); sin él el
 > coprocesador no tiene código y el juego no arranca.
 > 🖥️ **No distribuir un `config/wrally2.CFG`**: el default de fábrica (sin CFG) arranca en Left / Original / Normal.
