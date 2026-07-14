@@ -48,6 +48,19 @@ Prebuilt `thoop2_20260701.rbf` in [`releases/`](releases/) (firmware loaded at r
 > ⚠️ The romset **must contain the DS5002 firmware** `thoop2_ds5002fp.bin` (CRC `6881384d`); it is not in the standard MAME set, and without it the coprocessor has no code and the game **freezes a few seconds into play**.
 > (V005 fixes a timing-closure bug present in V004 — the mc8051/DS5002 path was unconstrained, causing **board-dependent freezes during gameplay**.)
 
+### Glass (Gaelco, 1993)
+Type-1 core (`gaelco.cpp`): **MC68000 @12 MHz** + **DS5002FP** coprocessor (active protection) + encrypted
+VRAM. Video: 2 tilemaps + sprites (4bpp) + **OKI MSM6295**. The DS5002 is implemented with the **mc8051**
+core (Oregano), like World Rally / Alligator. **Status: playable on MiSTer** — boot, video, audio, DS5002
+coprocessor, and the end-of-mission-1 reveal validated on hardware (the mission-1 hang was a DS5002
+render-IRQ overrun, fixed by running the mc8051 at its faithful rate).
+
+The DS5002 firmware is **loaded at runtime from the `.mra`** — **no firmware is included in this repo** and
+**none is baked into the bitstream**. Prebuilt `glass_20260713.rbf` in [`releases/`](releases/) —
+**distributable** (DS5002 firmware loaded at runtime from the `.mra`, not baked in).
+> ⚠️ The romset (**`glassa`**, Break Edition) **must contain the DS5002 firmware** (`glass_ds5002fp_sram.bin`,
+> CRC `47c9df4c`); without it the coprocessor has no code and the game hangs.
+
 ### Alligator Hunt (Gaelco, 1994)
 **First Gaelco Type-2 core** (`gaelco2.cpp`, **GAE1** custom chip): **MC68000** + **DS5002FP** coprocessor
 + **OKI MSM6295**. The Type-2 video is new vs the Type-1 family (2 tilemaps + 2 sprite banks with
