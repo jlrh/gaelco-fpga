@@ -1,0 +1,49 @@
+# cfg/files.yaml — fuentes del core JTGLASS (Thunder Hoop, Gaelco). jtframe mergea esto
+# con los ficheros del framework (board/sdram/dwnld/slots) y del target.
+# HDL en cores/glass/hdl/. Espejo de WRally SIN los modulos del DS5002 (mc8051/r8051/wrdallas),
+# + el motor de video Tipo-1 nuevo.
+glass:
+  - get:
+    # --- game (contrato jtframe) ---
+    - jtglass_game.v
+    # --- CPU / placa ---
+    - glass_main.v
+    - glass_addr_decode.v
+    - glass_vram_decrypt.v   # cifrado gaelcrpt (claves 0x0e,0x4228) — adaptado de WRally
+    - glass_iolatch.v        # LS259 outlatch + OKI bank
+    - glass_oki.v
+    - glass_inputs.v
+    - glass_vmem.v           # videoram + screenram + paleta + spriteram (BRAM)
+    # --- video Tipo-1 (gaelco_v.cpp) ---
+    - glass_video_top.v      # timing + compositor tilemap + paleta -> RGB
+    - glass_video.v          # compositor 2 tilemaps con prioridad multipasada (rango)
+    - glass_video_timing.v   # timing H/V + vblank_irq (57.47Hz, a calibrar a 57.42)
+    - glass_tilemap.v        # tilemap 32x32 de tiles 16x16 4bpp, split-pen
+    - glass_palette.v        # xBGR-555
+    - glass_gfx_decode.v     # planar RGN_FRAC(1,4) -> pen 4bpp
+    - glass_sprite_layer.v   # capa de sprites (ping-pong doble buffer)
+    - glass_sprite_engine.v  # sprites 8x8/16x16, line buffer
+    - glass_bitmap.v         # capa BITMAP del blitter (lee H9, fondo bajo tilemaps) — lo nuevo de glass
+    - glass_blitter.v        # captura del comando serie del blitter (0x700008, 5 bits) -> base+active
+    - glass_dbg_uart.v       # telemetria UART del handshake DS5002 (HW; PKT dump en sim) — clon de wrally2
+    # --- OKI (jt6295, GPLv3) ---
+    - jt6295.v
+    - jt6295_acc.v
+    - jt6295_adpcm.v
+    - jt6295_ctrl.v
+    - jt6295_rom.v
+    - jt6295_serial.v
+    - jt6295_sh_rst.v
+    - jt6295_timing.v
+    # --- 68000 (fx68k, ijor, GPLv3); microrom/nanorom.mem en hdl/ ---
+    - fx68k.sv
+    - fx68kAlu.sv
+    - uaddrPla.sv
+    # --- DTACK + cens del 68000 (copia local, sin freqinfo) ---
+    - glass_68kdtack.v
+    # --- DS5002FP (mc8051 Oregano/jtframe, COMPLETO; mismo camino que WRally/aligator) ---
+    - glass_mcu.v        # wrapper: IRAM/SFR internos; ROM (firmware) + xdata (MOVX) externos
+    - mc8051_regen.v     # core mc8051 (VHDL->Verilog via ghdl)
+    - jtframe_ram_rst.v  # IRAM 256B del wrapper
+    # --- SDC del mc8051 (en cores/glass/syn/; jtframe resuelve .sdc desde syn/ -> SDC_FILE en el qsf) ---
+    - glass_clk48_96.sdc # multicycle clk48<->clk96 + mc8051 (OBLIGATORIO o freeze). Clon de aligator.

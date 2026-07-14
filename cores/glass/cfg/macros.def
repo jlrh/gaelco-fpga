@@ -1,0 +1,70 @@
+# cfg/macros.def — core jtframe JTGLASS (Glass, Gaelco 1993, driver propio glass.cpp).
+#
+# SCAFFOLD clonado de BIOMTOY (Tipo-1 gaelco.cpp: 2 tilemaps 16x16 4bpp + sprites 4-word + OKI6295, sin
+# cifrado VRAM, sin DS5002). 68000 @ 12 MHz, refresh ~57.42 Hz. Ver plan: research/GLASS-ARQUITECTURA-PLAN.md.
+#
+# OBJETIVO 1ª versión = glassp (Version 1994 DESPROTEGIDA) -> sin DS5002, aísla lo nuevo.
+#
+# DIFERENCIAS vs biomtoy (TODO al tener ROMs + golden):
+#   - 🆕 CAPA BITMAP / BLITTER: fondo 320x200 indexado seleccionado de la ROM H9 (1MB=16 imgs) por un comando
+#       serie de 5 bits (P0 P1 B2 B1 B0), compuesto DEBAJO de los tilemaps (offset 24,24). Es lo NUEVO de Glass.
+#   - Mapa 68000 (glass.cpp): vram 0x100000, extra-vram 0x102000, vregs 0x108000, paleta 0x200000 (1024),
+#       spr 0x440000, I/O+blitter 0x700000, OKI 0x70000d/f, workram 0xfec000 (16K, compartida en versiones protegidas).
+#   - gfx: tiles H13(0..0x1fffff)+H11(0x200000..0x3fffff) 4bpp + bitmap H9(1MB). De-interleave a CALIBRAR (golden).
+#   - Versión PROTEGIDA (glass): añadir DS5002 (MON 0x29, firmware glass_ds5002fp_sram.bin 8K, ventana 16K) — fase 8.
+#   - Resolución/visarea: VERIFICAR vs MAME (glass.cpp sugiere ~368x272; ajustar timing).
+#
+# ⏳ BLOQUEANTE: faltan las ROMs de Glass (glassp) para golden/sim/.mra/HW. Scaffold listo; resto pendiente de ROMs.
+#
+# FLUJO: jtcore lee este fichero + cfg/mem.yaml y AUTO-GENERA jtglass_game_sdram.v (GAMETOP)
+# que instancia hdl/jtglass_game.v + slots SDRAM + dwnld.
+CORENAME=JTGLASS
+GAMETOP=jtglass_game_sdram
+
+# Pantalla: 368x240 (confirmado por MAME glassa snapshot), ROT0 horizontal. xBGR-555 = 5 bits/canal.
+# WIDTH=320 (visarea completa de MAME 0..319). El hblank ya NO recorta 1 col (fix 2026-06-22).
+JTFRAME_WIDTH=368
+JTFRAME_HEIGHT=240
+JTFRAME_COLORW=5
+
+# pxl_cen/pxl2_cen son SALIDAS del game (las generamos en hdl/jtglass_game.v). El refresco
+# 57.42 Hz se calibra en el modulo de timing de video (htotal x vtotal x pxlclk). NO definir
+# JTFRAME_PXLCLK (el divisor no-estandar no lo soporta jtframe_pxlcen).
+
+# Botones: 2 (joystick 8-way + 2 botones por jugador).
+JTFRAME_BUTTONS=2
+
+# Reloj: game a 48MHz (clk48), SDRAM a 96MHz (SDRAM96) = camino HW-probado en WRally
+# (rungun/simson/toki). 68000 a 12MHz = clk48/4. OKI ~1MHz.
+JTFRAME_CLK48
+JTFRAME_SDRAM96
+
+# Reparto de la .mra (direccion de BYTE en el stream de descarga):
+#   ba0 = prog 68000  1MB  @0          (d18 par 512K + d16 impar 512K -> 0x100000 exacto)
+#   ba1 = gfx 4MB @0x100000  (REGION 0x400000 = 4 planos RGN_FRAC(1,4) de 1MB c/u, ensamblados
+#         de 8 ROMs h/j con ROM_CONTINUE; de-interleave a calibrar)
+#   ba2 = OKI samples 1MB  @0x500000   (c1 512K + c3 512K)
+# (sin PROM: no hay wrdallas/DS5002.)
+JTFRAME_BA1_START=0x100000
+JTFRAME_BA2_START=0x500000
+# ba3 = bitmap H9 1MB @0x600000 (tras el OKI). Capa blitter (lo nuevo de glass).
+JTFRAME_BA3_START=0x600000
+# Firmware DS5002FP (32KB) en la .mra @0x700000 (tras H9 1MB) -> BRAM 'dallas' via mecanismo PROM.
+# Glass lleva DS5002 ACTIVO (como WRally/aligator): el firmware se carga en runtime desde la .mra.
+JTFRAME_PROM_START=0x700000
+
+[mister]
+JTFRAME_ARX=4
+JTFRAME_ARY=3
+# Quitar el LOGO JT del fondo del menu OSD (macro oficial jtframe). Core INDEPENDIENTE.
+JTFRAME_OSD_NOLOGO
+# TELEMETRIA UART del handshake DS5002 (HW, bring-up). QUITADA para el build de RELEASE (2026-07-13):
+# el cuelgue del reveal está RESUELTO (mc8051 /12->/3, ver glass_mcu.v DIVN). Para re-depurar,
+# descomentar JTFRAME_GAME_UART + JTFRAME_UART y regenerar. Parser: cores/glass/mister/parse_glass_v6.py.
+#JTFRAME_GAME_UART
+#JTFRAME_UART
+# SDRAM_LARGE (SDRAMW=24): el gfx DW32 sale GARBLED en HW con non-LARGE (2026-07-01); el cross-check
+# confirmó que la .mra/datos del gfx son CORRECTOS (mra2rom==sim bank1 5000/5000) -> el fallo es el
+# manejo del DW32 por el download/SDRAM en non-LARGE. aligator/wrally2 (gfx DW32 OK en HW) usan LARGE.
+# SÓLO en [mister]: el SIM se queda non-LARGE (bootprep identidad sigue booteando). Build #2 = probar esto.
+JTFRAME_SDRAM_LARGE
