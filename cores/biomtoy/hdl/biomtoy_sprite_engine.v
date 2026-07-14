@@ -98,11 +98,16 @@ module biomtoy_sprite_engine (
     wire [4:0] spr_h  = w0_r[11] ? 5'd8 : 5'd16;                          // alto del sprite
     wire [4:0] spr_row= w0_r[15] ? (spr_h - 5'd1 - py_c[4:0]) : py_c[4:0]; // fila con flipY
 
-    // --- escritura del line buffer ---
+    // --- escritura del line buffer (FIRST WRITE WINS = prioridad sprite-vs-sprite de MAME) ---
+    //   MAME: prio_transpen hace pmask|=1<<31 y priority=31 en cada pixel no-transparente -> el PRIMER
+    //   sprite (i mas ALTO, dibujado antes) reclama el pixel; los posteriores (i menor) NO lo sobreescriben.
+    //   => no pisar un pixel cuyo pen ya != 0.  (Antes: "last write wins" = i bajo tapaba al alto: bug.)
+    wire [12:0] lb_cur   = wbank_r ? lb1[lb_wa] : lb0[lb_wa];
+    wire        lb_empty = (lb_cur[3:0] == 4'd0);
     always @(posedge clk) if (ce) begin
         if (state==CLR) begin
             if (wbank_r) lb1[clr_i[8:0]] <= 13'd0; else lb0[clr_i[8:0]] <= 13'd0;
-        end else if (state==PWR && (pen != 4'd0) && xin) begin
+        end else if (state==PWR && (pen != 4'd0) && xin && lb_empty) begin
             if (wbank_r) lb1[lb_wa] <= {prio_r, color_r, pen};
             else         lb0[lb_wa] <= {prio_r, color_r, pen};
         end
