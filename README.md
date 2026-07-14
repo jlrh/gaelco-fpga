@@ -35,7 +35,7 @@ loaded at *runtime* from the `.mra`, it is not baked into the bitstream.
 
 ### Thunder Hoop (Gaelco, 1992) — *beta*
 68000 @12 MHz, encrypted VRAM, gfx with `[0,2,1,3]` de-interleave. **Status: working on MiSTer (beta)**
-(boot, video, audio). `thoop_20260701.rbf`.
+(boot, video, audio). `thoop_20260714.rbf`.
 
 ### Biomechanical Toy (Gaelco, 1994/95) — *beta*
 68000 @12 MHz, *plain VRAM* (no encryption). **Status: working on MiSTer (beta).** `biomtoy_20260701.rbf`.
@@ -263,7 +263,7 @@ carga en *runtime* desde el `.mra`, no va horneado en el bitstream.
 
 ### Thunder Hoop (Gaelco, 1992) — *beta*
 68000 @12 MHz, VRAM cifrada, gfx con de-interleave `[0,2,1,3]`. **Estado: funcionando en MiSTer (beta)**
-(arranque, vídeo, audio). `thoop_20260701.rbf`.
+(arranque, vídeo, audio). `thoop_20260714.rbf`.
 
 ### Biomechanical Toy (Gaelco, 1994/95) — *beta*
 68000 @12 MHz, *VRAM plana* (sin cifrado). **Estado: funcionando en MiSTer (beta).** `biomtoy_20260701.rbf`.
