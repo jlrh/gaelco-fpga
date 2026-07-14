@@ -96,7 +96,10 @@ module thoop2_video_timing #(
 
     assign hpos = hcnt;     // válido en 0..HVIS-1 (de=1)
     assign vpos = vcnt[8:0];
-    assign de   = (hcnt < HVIS) && (vcnt < VVIS);
+    // de extendido 1px a la dcha (hcnt<=HVIS): el RGB lleva 1px de retardo del pipeline -> con de=(hcnt<HVIS)
+    // la ULTIMA columna (borde derecho del marco del grid) salia negra ("linea que falta a la dcha" en HW).
+    // (Mismo fix que aligator, validado en HW; reproducido en sim thoop 2026-07-14.)
+    assign de   = (hcnt <= HVIS) && (vcnt < VVIS);
 
 endmodule
 
