@@ -38,7 +38,7 @@ loaded at *runtime* from the `.mra`, it is not baked into the bitstream.
 (boot, video, audio). `thoop_20260714.rbf`.
 
 ### Biomechanical Toy (Gaelco, 1994/95) — *beta*
-68000 @12 MHz, *plain VRAM* (no encryption). **Status: working on MiSTer (beta).** `biomtoy_20260701.rbf`.
+68000 @12 MHz, *plain VRAM* (no encryption). **Status: working on MiSTer (beta).** `biomtoy_20260714.rbf`.
 
 ### TH Strikes Back / Thunder Hoop 2 (Gaelco, 1994) — *beta*
 68000 @12 MHz + **DS5002FP** coprocessor (passive protection). Plain VRAM (no encryption), Rev-B sprite
@@ -266,7 +266,7 @@ carga en *runtime* desde el `.mra`, no va horneado en el bitstream.
 (arranque, vídeo, audio). `thoop_20260714.rbf`.
 
 ### Biomechanical Toy (Gaelco, 1994/95) — *beta*
-68000 @12 MHz, *VRAM plana* (sin cifrado). **Estado: funcionando en MiSTer (beta).** `biomtoy_20260701.rbf`.
+68000 @12 MHz, *VRAM plana* (sin cifrado). **Estado: funcionando en MiSTer (beta).** `biomtoy_20260714.rbf`.
 
 ### Alligator Hunt (Gaelco, 1994)
 **Primer core Gaelco Tipo-2** (`gaelco2.cpp`, chip custom **GAE1**): **MC68000** + coprocesador
