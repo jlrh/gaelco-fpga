@@ -31,7 +31,7 @@ loaded at *runtime* from the `.mra`, it is not baked into the bitstream.
 > `VTOTAL` 348→272 for ~57.45 Hz, like World Rally). Both HDMI and analog/CRT supported.
 
 ### Squash (Gaelco, 1992) — *beta*
-68000 @10 MHz, encrypted VRAM. **Status: playable on MiSTer (beta).** `squash_20260701.rbf`.
+68000 @10 MHz, encrypted VRAM. **Status: playable on MiSTer (beta).** `squash_20260714.rbf`.
 
 ### Thunder Hoop (Gaelco, 1992) — *beta*
 68000 @12 MHz, encrypted VRAM, gfx with `[0,2,1,3]` de-interleave. **Status: working on MiSTer (beta)**
@@ -259,7 +259,7 @@ carga en *runtime* desde el `.mra`, no va horneado en el bitstream.
 > Soporta tanto HDMI como analógica/CRT.
 
 ### Squash (Gaelco, 1992) — *beta*
-68000 @10 MHz, VRAM cifrada. **Estado: jugable en MiSTer (beta).** `squash_20260701.rbf`.
+68000 @10 MHz, VRAM cifrada. **Estado: jugable en MiSTer (beta).** `squash_20260714.rbf`.
 
 ### Thunder Hoop (Gaelco, 1992) — *beta*
 68000 @12 MHz, VRAM cifrada, gfx con de-interleave `[0,2,1,3]`. **Estado: funcionando en MiSTer (beta)**
