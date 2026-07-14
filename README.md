@@ -71,7 +71,7 @@ validated on hardware. The DS5002 is implemented with the **mc8051** core (Orega
 TH Strikes Back. CRT/analog (15 kHz) timing validated.
 
 The DS5002 firmware is **loaded at runtime from the `.mra`** — **no firmware is included in this repo** and
-**none is baked into the bitstream**. Prebuilt `aligator_20260701.rbf` in [`releases/`](releases/) —
+**none is baked into the bitstream**. Prebuilt `aligator_20260714.rbf` in [`releases/`](releases/) —
 **distributable** (DS5002 firmware loaded at runtime from the `.mra`, not baked into the bitstream),
 **validated playable on MiSTer**. Or build from source (`cores/aligator/`) applying **both**
 `tools/patch_dallas_runtime.py` + `tools/patch_scratch_runtime.py` (the first builds the runtime program
@@ -190,7 +190,7 @@ The cores are playable/working; the items below are polish and do not block game
 - ✅ **Playable on MiSTer** (validated on hardware): boot, video, audio, DS5002 coprocessor, gameplay.
 - ✅ **CRT/analog timing** validated (`HTOTAL`=512 → ~15.6 kHz hsync, `VTOTAL`=264 → ~59.2 Hz).
 - DS5002 firmware loaded at runtime from the `.mra` (no firmware in this repo, none baked in the bitstream).
-- Prebuilt `aligator_20260701.rbf` in [`releases/`](releases/) — distributable, validated playable on MiSTer.
+- Prebuilt `aligator_20260714.rbf` in [`releases/`](releases/) — distributable, validated playable on MiSTer.
   Build from source needs **both** `tools/patch_dallas_runtime.py` (runtime program PROM) + `tools/patch_scratch_runtime.py` (runtime data SCRATCH).
 
 ### World Rally 2
@@ -278,7 +278,7 @@ validados en hardware. El DS5002 se implementa con el core **mc8051** (Oregano),
 TH Strikes Back. Timing CRT/analógico (15 kHz) validado.
 
 El firmware del DS5002 se **carga en runtime desde el `.mra`** — **no se incluye firmware en este repo** y
-**no va horneado en el bitstream**. `.rbf` precompilado `aligator_20260701.rbf` en [`releases/`](releases/) —
+**no va horneado en el bitstream**. `.rbf` precompilado `aligator_20260714.rbf` en [`releases/`](releases/) —
 **distribuible** (firmware del DS5002 cargado en runtime desde el `.mra`, no horneado en el bitstream),
 **validado jugable en MiSTer**. O compilar desde fuente (`cores/aligator/`) aplicando **los dos**
 `tools/patch_dallas_runtime.py` + `tools/patch_scratch_runtime.py` (el primero hace el PROM del programa en
@@ -392,7 +392,7 @@ Los cores son jugables/funcionales; lo de abajo es pulido y no bloquea la partid
 - ✅ **Jugable en MiSTer** (validado en hardware): arranque, vídeo, audio, coprocesador DS5002, partida.
 - ✅ **Timing CRT/analógico** validado (`HTOTAL`=512 → hsync ~15,6 kHz, `VTOTAL`=264 → ~59,2 Hz).
 - Firmware del DS5002 cargado en runtime desde el `.mra` (sin firmware en el repo, sin hornear en el bitstream).
-- `.rbf` precompilado `aligator_20260701.rbf` en [`releases/`](releases/) — distribuible, validado jugable en MiSTer.
+- `.rbf` precompilado `aligator_20260714.rbf` en [`releases/`](releases/) — distribuible, validado jugable en MiSTer.
   Compilar desde fuente requiere **los dos** `tools/patch_dallas_runtime.py` (PROM del programa en runtime) + `tools/patch_scratch_runtime.py` (SCRATCH de datos en runtime).
 
 ## Créditos

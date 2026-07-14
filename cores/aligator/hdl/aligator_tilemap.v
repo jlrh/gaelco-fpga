@@ -79,38 +79,49 @@ module aligator_tilemap (
 
     // ---- Etapa 1.5 : prefetch de gfx (doble buffer lo/hi por col[3]) con gfx_ok ----
     localparam integer LEAD = 7;
-    reg [7:0] gl0, gl1, gl2, gl3;     // buffer mitad LO (col[3]=0)
-    reg [7:0] gh0, gh1, gh2, gh3;     // buffer mitad HI (col[3]=1)
+    // DOBLE BUFFER POR PARIDAD DE TILE (port del fix de wrally_tilemap.v 2026-07-01, "barra roja/nieve";
+    // reproducido en sim thoop 2026-07-14 = glitch del grid de GENERAL TEST, cajas de las esquinas):
+    // con UN solo par gl/gh el tile N+1 sobrescribia la mitad del tile N antes de consumirse (LEAD=7 con
+    // mitades de 8px = margen 1); con tiles FLIP-X el orden de carga se invierte y el margen se pierde en
+    // el BORDE -> se decodificaba la gfx del tile VECINO -> pen erroneo (linea de 1px). FIX: 2 bancos por
+    // paridad de tile -> mientras se decodifica N (LEAD atras) se carga N+1 en el OTRO banco, nunca se pisa.
+    reg [7:0] gl0[0:1], gl1[0:1], gl2[0:1], gl3[0:1];     // buffer mitad LO (col[3]=0), por paridad
+    reg [7:0] gh0[0:1], gh1[0:1], gh2[0:1], gh3[0:1];     // buffer mitad HI (col[3]=1), por paridad
+    reg wpar;
+    always @(posedge clk) if (ce) wpar <= tmx_r[4];
     always @(posedge clk) if (ce && gfx_ok) begin
-        if (col1[3]) begin gh0<=d_p0; gh1<=d_p1; gh2<=d_p2; gh3<=d_p3; end
-        else         begin gl0<=d_p0; gl1<=d_p1; gl2<=d_p2; gl3<=d_p3; end
+        if (col1[3]) begin gh0[wpar]<=d_p0; gh1[wpar]<=d_p1; gh2[wpar]<=d_p2; gh3[wpar]<=d_p3; end
+        else         begin gl0[wpar]<=d_p0; gl1[wpar]<=d_p1; gl2[wpar]<=d_p2; gl3[wpar]<=d_p3; end
     end
 
-    reg [5:0] color_d; reg [1:0] cat_d; reg [3:0] col_d;
+    reg [5:0] color_d; reg [1:0] cat_d; reg [3:0] col_d; reg par_d;
     always @(posedge clk) if (ce) begin
-        color_d <= color1; cat_d <= cat1; col_d <= col1;
+        color_d <= color1; cat_d <= cat1; col_d <= col1; par_d <= wpar;
     end
     reg [5:0] color_sr [0:LEAD-1];
     reg [1:0] cat_sr   [0:LEAD-1];
     reg [3:0] col_sr   [0:LEAD-1];
+    reg       par_sr   [0:LEAD-1];
     integer si;
     always @(posedge clk) if (ce) begin
-        color_sr[0] <= color_d; cat_sr[0] <= cat_d; col_sr[0] <= col_d;
+        color_sr[0] <= color_d; cat_sr[0] <= cat_d; col_sr[0] <= col_d; par_sr[0] <= par_d;
         for (si = 1; si < LEAD; si = si + 1) begin
             color_sr[si] <= color_sr[si-1];
             cat_sr  [si] <= cat_sr  [si-1];
             col_sr  [si] <= col_sr  [si-1];
+            par_sr  [si] <= par_sr  [si-1];
         end
     end
     wire [5:0] color_c = color_sr[LEAD-1];
     wire [1:0] cat_c   = cat_sr  [LEAD-1];
     wire [3:0] col_c   = col_sr  [LEAD-1];
+    wire       par_c   = par_sr  [LEAD-1];
 
-    // ---- Etapa 2 : decodificar pen del buffer (mitad por col_c[3], bit por col_c[2:0]) ----
-    wire [7:0] db0 = col_c[3] ? gh0 : gl0;
-    wire [7:0] db1 = col_c[3] ? gh1 : gl1;
-    wire [7:0] db2 = col_c[3] ? gh2 : gl2;
-    wire [7:0] db3 = col_c[3] ? gh3 : gl3;
+    // ---- Etapa 2 : decodificar pen del buffer (banco por par_c, mitad por col_c[3], bit por col_c[2:0]) ----
+    wire [7:0] db0 = col_c[3] ? gh0[par_c] : gl0[par_c];
+    wire [7:0] db1 = col_c[3] ? gh1[par_c] : gl1[par_c];
+    wire [7:0] db2 = col_c[3] ? gh2[par_c] : gl2[par_c];
+    wire [7:0] db3 = col_c[3] ? gh3[par_c] : gl3[par_c];
     wire [2:0] bbit = 3'd7 - col_c[2:0];
     wire [3:0] pen2 = { db3[bbit], db2[bbit], db1[bbit], db0[bbit] };  // p0=LSB..p3=MSB
     always @(posedge clk) if (ce) begin
