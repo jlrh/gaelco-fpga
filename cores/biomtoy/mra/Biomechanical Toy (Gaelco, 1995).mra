@@ -21,8 +21,8 @@
         <!-- 0x000000: prog 68000 (1MB). SIMETRICO: d18=byte par(ALTO) map=10, d16=byte impar(BAJO) map=01.
              Ambos 512K -> interleave = 0x100000 EXACTO (sin truncado ni padding, a diferencia de thoop). -->
         <interleave output="16">
-            <part name="d18" crc="4569ce64" map="10"/>
-            <part name="d16" crc="739449bd" map="01"/>
+            <part name="18.d18" crc="4569ce64" map="10"/>
+            <part name="16.d16" crc="739449bd" map="01"/>
         </interleave>
         <!-- 0x100000: gfx 4MB. 2 secciones DW32. Seccion j = planos[0:0x80000]; seccion h = planos[0x80000:].
              byte0=plano0, byte1=plano1, byte2=plano2, byte3=plano3. De-interleave [0,2,1,3] en RTL. -->

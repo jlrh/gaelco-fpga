@@ -25,10 +25,10 @@
     <region>World</region>
 
     <rom index="0" zip="thoop2.zip" type="merged" md5="none">
-        <!-- 0x000000: prog 68000 (1MB). c23=byte par(ALTO) map=10, c22=byte impar(BAJO) map=01. Simetrico. -->
+        <!-- 0x000000: prog 68000 (1MB) PARENT 0.288: 3.c23=byte par(ALTO) map=10 off0, 2.c22=byte impar(BAJO) map=01 off1. -->
         <interleave output="16">
-            <part name="th2c23.c23" crc="3e465753" map="10"/>
-            <part name="th2c22.c22" crc="837205b7" map="01"/>
+            <part name="3.c23" crc="6cd4a8dc" map="10"/>
+            <part name="2.c22" crc="59ba9b43" map="01"/>
         </interleave>
         <!-- 0x100000: gfx 8MB. Dos mitades de 4MB (h8 = planos 0/1 ; h12 = planos 2/3) -> DW32 two-halves.
              map 0021/2100 = interleave NATURAL (word h8 + word h12, sin swap de bytes). CALIBRADO vs golden:
