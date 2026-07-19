@@ -1,34 +1,27 @@
 <?xml version="1.0"?>
-<!-- World Rally (Gaelco, 1993) — set 'wrally'. JTWRALLY (jtframe). BUILD JUGABLE.
-     ★ V.058 (2026-06-18) = .rbf RECOMPILADO con FIXES DE SONIDO (el map del gfx es el MISMO que V.054):
-         (1) volumen x4 ({snd14,2'b00}; el sign-extend dejaba -12dB = "bajo");
-         (2) sample-rate REAL del OKI (jt6295.sample propagado como snd_sample; antes oki_cen 1MHz -> distorsion).
-       Necesita el .rbf NUEVO (NO reusa el de V.054). Inputs sin cambio (mux correcto). Congelacion de demo
-       SIN tocar (diagnosticada: busy-wait del 68k en 0xFEC100, aguas abajo del MCU; pendiente sesion dedicada).
-     ★ FIX COLORES (V.054, 2026-06-18) — VERIFICADO EN HW: pantalla azul, logo y "Competition Car" OK.
-       map EXPLICITO en el interleave32 del GFX (banco1 DW32). MISMO bug que tenia el prog (V.052): sin
-       map, el loader MRA del MiSTer NO coloca bien los 4 carriles de byte del gfx en HW -> al pen le
-       faltan bits -> "pocos colores / efecto ZX Spectrum" (formas reconocibles, color tosco, gradientes
-       en bloques). El sim no lo veia (precarga sdram_bank1.bin = layout correcto).
-       VALORES DEL MAP (one-hot natural): i07="0001" i09="0010" i11="0100" i13="1000".
-       Camino hasta ellos: el layout SDRAM correcto = byteswap16 del stream (verificado byte-a-byte vs
-       sdram_bank1.bin, 2MB). V.053 probo el map calibrado SOLO con el prog DW16 (i09=+0...) -> en HW dio
-       fondo BLANCO + gradiente cruzado = las DOS mitades de 16b del DW32 quedaron intercambiadas (el
-       orden de mitades es el grado de libertad que difiere sim<->HW; el prog DW16 es 1 sola palabra y no
-       lo calibra). V.058 intercambia las mitades -> CORRECTO en HW. Cambio SOLO de .mra: NO recompila
-       (reutiliza el .rbf V.052). PENDIENTE (frentes aparte): sprites semitransparentes/sombra mal
-       pintados (letras "World Rally", marcador demo), congelacion en demo (tambien en V1), sonido bajo,
-       mandos sin responder.
+<!-- World Rally (Gaelco, 1993) — set 'wrallyc' (checksum 3873). JTWRALLY (jtframe). BUILD JUGABLE.
+     ★ VARIANTE de "World Rally Championship (Gaelco, 1993)" (parent 'wrally'). ÚNICA diferencia con el
+       parent: el PROGRAMA del 68000 (c22/c23). GFX (worldr*), samples OKI y la ROM Dallas (wrdallas.bin)
+       son IDÉNTICOS (heredados del parent, mismos CRC). Cosmético: en la presentación el coche sale con
+       2 faros (el parent muestra 4). NO recompila: reutiliza el .rbf de wrally (el hardware es el mismo;
+       la revisión es 100% dato de runtime cargado por el .mra). setname/zip -> wrallyc.
+       Convención de carriles VERIFICADA en MAME 0.288 (listxml): c23.bin offset=0 (par, byte ALTO),
+       c22.bin offset=1 (impar, byte BAJO) -> mismo map que el parent (c22=01, c23=10).
+     ---- (comentarios técnicos del parent, siguen aplicando: el layout y los map NO cambian) ----
+     ★ FIX COLORES (V.054) — map EXPLICITO en el interleave32 del GFX (banco1 DW32): sin map, el loader
+       MRA del MiSTer NO coloca bien los 4 carriles de byte del gfx -> "pocos colores". i07=0001 i09=0010
+       i11=0100 i13=1000; layout SDRAM = byteswap16 del stream (verificado vs sdram_bank1.bin, 2MB).
      ★ FIX CAUSA RAIZ (V.052): map="01"/"10" en el interleave del prog del 68k (banco0 DW16). Sin el,
-       byte alto=0x00 -> 68k leia PC=0 -> no arrancaba. Verificado HW V.051-map (CKS golden).
-     Layout (= cfg/macros.def: BA1=0x100000, BA2=0x300000; wrdallas bakeada por SYNHEX, sin PROM en stream):
+       byte alto=0x00 -> 68k leia PC=0 -> no arrancaba.
+     Layout (= cfg/macros.def: BA1=0x100000, BA2=0x300000; wrdallas en region PROM/runtime):
        0x000000  prog 68000 1MB  (interleave16, c22=bajo map=01 / c23=alto map=10)        -> ba0 (DW16)
        0x100000  gfx 2MB         (interleave32 [i07,i09,i11,i13] con map -> byteswap16)    -> ba1 (DW32)
        0x300000  OKI samples 1MB (worldr14, worldr15)                                      -> ba2 (DW8)
+       0x400000  firmware DS5002 32KB (wrdallas.bin) = region PROM (JTFRAME_PROM_START)
 -->
 <misterromdescription>
-    <name>World Rally Championship (Gaelco, 1993)</name>
-    <setname>wrally</setname>
+    <name>World Rally Championship (Gaelco, 1993, checksum 3873)</name>
+    <setname>wrallyc</setname>
     <rbf>wrally</rbf>
     <mameversion>0288</mameversion>
     <year>1993</year>
@@ -37,12 +30,12 @@
     <rotation>horizontal</rotation>
     <region>World</region>
 
-    <rom index="0" zip="wrally.zip" type="merged" md5="none">
-        <!-- 0x000000: prog 68000 (1 MB). map EXPLICITO: c22 (_o, impar)=byte BAJO; c23 (_e, par)=byte ALTO.
+    <rom index="0" zip="wrallyc.zip" type="merged" md5="none">
+        <!-- 0x000000: prog 68000 (1 MB). map EXPLICITO: c22 (impar, offset=1)=byte BAJO; c23 (par, offset=0)=byte ALTO.
              El 68k es big-endian: word@0 = {byte par (c23, ALTO), byte impar (c22, BAJO)} = 0x00FE. -->
         <interleave output="16">
-            <part name="invers_taula_c22_coche_8-11-93_o.bin" crc="af91579b" map="01"/>
-            <part name="invers_taula_c23_coche_8-11-93_e.bin" crc="593189bf" map="10"/>
+            <part name="c22.bin" crc="56da43b6" map="01"/>
+            <part name="c23.bin" crc="8b7d93c3" map="10"/>
         </interleave>
 
         <!-- 0x100000: gfx (2 MB) interleave 32 [i07,i09,i11,i13] CON map EXPLICITO.
@@ -60,8 +53,7 @@
         <part name="worldr14.c01" crc="e931c2ee"/>
         <part name="worldr15.c03" crc="11f0fe2c"/>
 
-        <!-- 0x400000: firmware DS5002 (32 KB) = region PROM (JTFRAME_PROM_START). V.067: AÑADIDO al stream
-             para cargarlo en RUNTIME (antes horneado por SYNHEX en el .rbf). Directo, sin interleave/byteswap
+        <!-- 0x400000: firmware DS5002 (32 KB) = region PROM (JTFRAME_PROM_START). Directo, sin interleave/byteswap
              (= ROM_LOAD de MAME a gaelco_ds5002fp:sram). Las 3 regiones anteriores llenan exacto hasta 0x400000. -->
         <part name="wrdallas.bin" crc="547d1768"/>
     </rom>
