@@ -27,7 +27,7 @@
        0x300000  OKI samples 1MB (worldr14, worldr15)                                      -> ba2 (DW8)
 -->
 <misterromdescription>
-    <name>World Rally Championship (Gaelco, 1993, checksum DE0D)</name>
+    <name>World Rally Championship (FF, Gaelco, 1993, checksum DE0D)</name>
     <setname>wrally</setname>
     <rbf>wrally</rbf>
     <mameversion>0288</mameversion>

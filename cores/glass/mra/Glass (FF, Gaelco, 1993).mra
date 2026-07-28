@@ -4,7 +4,7 @@
      (el prog de glass son 512K < 1MB). Firmware DS5002FP en RUNTIME desde la .mra -> .rbf distribuible. -->
 <misterromdescription>
     <rbf>glass_20260713</rbf>
-    <name>Glass (Gaelco, 1993)</name>
+    <name>Glass (FF, Gaelco, 1993)</name>
     <setname>glassa</setname>
     <year>1993</year>
     <manufacturer>Gaelco</manufacturer>
@@ -13,7 +13,7 @@
     <rotation>horizontal</rotation>
     <region>World</region>
 
-    <rom index="0" zip="glassa.zip|glass.zip" type="merged" md5="none">
+    <rom index="0" zip="glass.zip" type="merged" md5="none">
         <!-- 0x000000: prog 68000 (interleave16, 2x256K). 1.c23 byte alto (map=10), 2.c22 byte bajo (map=01). -->
         <interleave output="16">
             <part name="1.c23" crc="aeebd4ed" map="10"/>

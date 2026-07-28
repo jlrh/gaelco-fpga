@@ -14,7 +14,7 @@
      PROBAR HW: test_mra.sh (UART scratch>0) + screenshot (colores) + oido (sonido). -->
 <misterromdescription>
     <rbf>wrally2</rbf>
-    <name>World Rally 2 (Gaelco, 1995)</name>
+    <name>World Rally 2 (FF, Gaelco, 1995)</name>
     <setname>wrally2</setname>
     <year>1995</year>
     <manufacturer>Gaelco</manufacturer>
@@ -35,7 +35,7 @@
         </interleave>
         <!-- L2 (4MB): ic69[2M:4M] par/impar + ic70 (lanes 2,3 don't-care) -->
         <interleave output="32">
-            <part name="wr2_ic69.ic69" offset="0x200000" map="0012"/>
+            <part name="wr2_ic69.ic69" offset="0x200000" length="0x200000" map="0012"/>
             <part name="wr2_ic70.ic70" map="1200"/>
         </interleave>
         <!-- U1 (4MB): ic68 (plano4) en las 4 lanes (4 partes, orden de byte mra2rom) -->

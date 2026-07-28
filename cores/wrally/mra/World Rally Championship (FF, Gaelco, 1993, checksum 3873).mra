@@ -20,7 +20,7 @@
        0x400000  firmware DS5002 32KB (wrdallas.bin) = region PROM (JTFRAME_PROM_START)
 -->
 <misterromdescription>
-    <name>World Rally Championship (Gaelco, 1993, checksum 3873)</name>
+    <name>World Rally Championship (FF, Gaelco, 1993, checksum 3873)</name>
     <setname>wrallyc</setname>
     <rbf>wrally</rbf>
     <mameversion>0288</mameversion>
@@ -30,7 +30,7 @@
     <rotation>horizontal</rotation>
     <region>World</region>
 
-    <rom index="0" zip="wrallyc.zip" type="merged" md5="none">
+    <rom index="0" zip="wrally.zip" type="merged" md5="none">
         <!-- 0x000000: prog 68000 (1 MB). map EXPLICITO: c22 (impar, offset=1)=byte BAJO; c23 (par, offset=0)=byte ALTO.
              El 68k es big-endian: word@0 = {byte par (c23, ALTO), byte impar (c22, BAJO)} = 0x00FE. -->
         <interleave output="16">
