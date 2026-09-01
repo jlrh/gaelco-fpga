@@ -417,10 +417,10 @@ Los cores son jugables/funcionales; lo de abajo es pulido y no bloquea la partid
 
 **GPLv3** (ver [`LICENSE`](LICENSE)) — obligado por las dependencias jtframe / fx68k / jt6295.
 
-<!-- omf_release:dependencias:thoop -->
-## Dependencias externas de `thoop`
+<!-- omf_release:dependencias:biomtoy -->
+## Dependencias externas de `biomtoy`
 
-Este repositorio contiene **solo el código de los cores**. Para compilar `thoop`
+Este repositorio contiene **solo el código de los cores**. Para compilar `biomtoy`
 hacen falta estas piezas, que se distribuyen desde su propio origen:
 
 | Qué | De dónde | Dónde va |
@@ -428,4 +428,4 @@ hacen falta estas piezas, que se distribuyen desde su propio origen:
 | jtframe — framework de compilacion y modulos comunes (video, sdram, ram, dwnld, OSD). ⚠ NO sirve el upstream tal cual: este core lleva el fix de `pxl_cen` en jtframe_mister.sv sin el cual el CRT Adjust parte la imagen | [https://github.com/jotego/jtframe](https://github.com/jotego/jtframe) | `modules/jtframe` |
 | fx68k — MC68000 (CPU principal): fx68k.sv, fx68kAlu.sv, uaddrPla.sv + microrom.mem/nanorom.mem | [https://github.com/jtfpga/fx68k](https://github.com/jtfpga/fx68k) | `modules/fx68k` |
 | jt6295 — OKI MSM6295 (sonido ADPCM) | [https://github.com/jotego/jt6295](https://github.com/jotego/jt6295) | `modules/jt6295` |
-<!-- /omf_release:dependencias:thoop -->
+<!-- /omf_release:dependencias:biomtoy -->
