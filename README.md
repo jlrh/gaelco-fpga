@@ -443,7 +443,6 @@ hacen falta estas piezas, que se distribuyen desde su propio origen:
 | fx68k — MC68000 (CPU principal): fx68k.sv, fx68kAlu.sv, uaddrPla.sv + microrom.mem/nanorom.mem | [https://github.com/jtfpga/fx68k](https://github.com/jtfpga/fx68k) | `modules/fx68k` |
 | jt6295 — OKI MSM6295 (sonido ADPCM) | [https://github.com/jotego/jt6295](https://github.com/jotego/jt6295) | `modules/jt6295` |
 <!-- /omf_release:dependencias:biomtoy -->
-
 <!-- omf_release:dependencias:squash -->
 ## Dependencias externas de `squash`
 
