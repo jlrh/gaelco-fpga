@@ -1,33 +1,24 @@
-# cfg/files.yaml — fuentes del core JTBIGKARNK (Big Karnak, Gaelco 1991). jtframe mergea
-# esto con los ficheros del framework (board/sdram/dwnld/slots) y del target.
-# HDL en cores/bigkarnk/hdl/.
-#
-# Big Karnak vs los otros Gaelco Tipo-1 de este repo:
-#   - SIN DS5002 (Unprotected) y SIN cifrado de VRAM -> NO se incluye bigkarnk_vram_decrypt.
-#   - Subsistema de SONIDO con CPU DEDICADA: MC6809E + YM3812 (jtopl) + OKIM6295 (jt6295)
-#     -> bigkarnk_sound.v + jtframe_6809 + jtopl2. El OKI ya NO cuelga del bus del 68k
-#     (se elimina bigkarnk_oki.v del bus principal; el OKI vive dentro de bigkarnk_sound).
 bigkarnk:
   - get:
-    # --- game (contrato jtframe) ---
+
     - jtbigkarnk_game.v
-    # --- CPU principal / placa (68000) ---
+
     - bigkarnk_main.v
     - bigkarnk_addr_decode.v
     - bigkarnk_inputs.v
-    - bigkarnk_vmem.v           # videoram + screenram + paleta + spriteram (BRAM)
-    # --- subsistema de SONIDO (NUEVO en Big Karnak) ---
-    - bigkarnk_sound.v          # MC6809E + YM3812 + OKIM6295
-    # --- video Tipo-1 (gaelco_v.cpp) — reutilizado de squash/thoop (validado) ---
+    - bigkarnk_vmem.v
+
+    - bigkarnk_sound.v
+
     - bigkarnk_video_top.v
     - bigkarnk_video.v
-    - bigkarnk_video_timing.v   # 320x240, 58.74 Hz (a calibrar)
+    - bigkarnk_video_timing.v
     - bigkarnk_tilemap.v
-    - bigkarnk_palette.v        # xBGR-555
-    - bigkarnk_gfx_decode.v     # planar RGN_FRAC(1,4) -> pen 4bpp
+    - bigkarnk_palette.v
+    - bigkarnk_gfx_decode.v
     - bigkarnk_sprite_layer.v
     - bigkarnk_sprite_engine.v
-    # --- OKI (jt6295, GPLv3) — instanciado dentro de bigkarnk_sound ---
+
     - jt6295.v
     - jt6295_acc.v
     - jt6295_adpcm.v
@@ -36,20 +27,20 @@ bigkarnk:
     - jt6295_serial.v
     - jt6295_sh_rst.v
     - jt6295_timing.v
-    # --- 68000 (fx68k, ijor, GPLv3); microrom/nanorom.mem en hdl/ ---
+
     - fx68k.sv
     - fx68kAlu.sv
     - uaddrPla.sv
-    # --- DTACK + cens del 68000 (copia local, sin freqinfo) ---
+
     - bigkarnk_68kdtack.v
-# --- modulos jtframe extra para el subsistema de sonido ---
+
 jtframe:
   - from: cpu
     get:
-      - jtframe_6809.yaml       # jtframe_sys6809 + mc6809i (MC6809E)
+      - jtframe_6809.yaml
   - get:
-      - jtframe_ff.v            # FF para el FIRQ del soundlatch
-# --- YM3812 / OPL2 (jtopl, GPLv3) ---
+      - jtframe_ff.v
+
 jtopl:
   - get:
     - jtopl2.yaml

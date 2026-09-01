@@ -1,23 +1,5 @@
-<!-- Big Karnak (Gaelco, 1991) — set 'bigkarnk'. Core BIGKARNK (jtframe), hw Gaelco Tipo-1
-     (gaelco.cpp, placa REF.901112-1, UNPROTECTED = SIN DS5002). Vídeo 0.00% vs MAME, sonido
-     6809+YM3812+OKI. .rbf: bigkarnk_YYYYMMDD.rbf (nomenclatura sin prefijo `jt`; el `jt` es marca
-     de jotego). Crédito: infra JTFRAME (jotego) GPL3.
-
-     ⚠️ BEST-EFFORT v1 — la SECCION GFX (map DW32 de los 4 cuartos) puede necesitar CALIBRACION EN HW
-     (el download ordena los bytes distinto que el sim; síntoma de map malo = FORMAS ok pero TONO/sombras
-     mal). Sweep con mister/sweep_*_map.sh si hace falta. El .rbf ya da vídeo 0.00% en sim.
-
-     Layout SDRAM (= cfg/macros.def: BA1_START=0x080000, BA2_START=0x280000, BA3_START=0x2C0000):
-       0x000000  prog 68000 512K  (interleave16: d16=byte par/ALTO map=10, d19=byte impar/BAJO map=01)  -> ba0 DW16
-       0x080000  gfx 2MB          (4 cuartos h5,h10,h8,h6 -> DW32)                                        -> ba1 DW32
-       0x280000  OKI samples 256K (d1, NO banked)                                                         -> ba2 DW8
-       0x2C0000  6809 sound ROM 64K (d5)                                                                  -> ba3 DW8
-     (Sin firmware DS5002: placa Unprotected -> no hay PROM 'dallas'.)
-     CRCs (= zip bigkarnk): d16=44fb9c73 d19=ff79dfdd h5=20e239ff h10=ab442855 h8=83dce5a3 h6=24e84b24
-                            d1=26444ad1 d5=3b73b9c5.
--->
 <misterromdescription>
-    <rbf>bigkarnk</rbf>
+    <rbf>bigkarnk_20260701</rbf>
     <name>Big Karnak (FF, Gaelco, 1991)</name>
     <setname>bigkarnk</setname>
     <year>1991</year>
@@ -28,33 +10,29 @@
     <region>World</region>
 
     <rom index="0" zip="bigkarnk.zip" type="merged" md5="none">
-        <!-- 0x000000: prog 68000 512K. d16=byte par(ALTO) map=10, d19=byte impar(BAJO) map=01. -->
+
         <interleave output="16">
             <part name="d16" crc="44fb9c73" map="10"/>
             <part name="d19" crc="ff79dfdd" map="01"/>
         </interleave>
-        <!-- 0x080000: gfx 2MB. 4 planos (h5,h10,h8,h6) DW32, RGN_FRAC(1,4). CALIBRADO EN HW (2026-07-01)
-             con el gradiente RGB del service/GENERAL TEST: el arranque natural (h5=byte0,h10=byte1,h8=byte2,
-             h6=byte3) salía con la rampa de pen DESORDENADA = permutación bit0<->bit1 y bit2<->bit3. FIX =
-             intercambiar h5<->h10 y h8<->h6 en sus byte-lanes -> h5=byte1, h10=byte0, h8=byte3, h6=byte2. -->
+
         <interleave output="32">
             <part name="h5"  crc="20e239ff" map="0010"/>
             <part name="h10" crc="ab442855" map="0001"/>
             <part name="h8"  crc="83dce5a3" map="1000"/>
             <part name="h6"  crc="24e84b24" map="0100"/>
         </interleave>
-        <!-- 0x280000: OKI samples 256K (d1) -->
+
         <part name="d1" crc="26444ad1"/>
-        <!-- 0x2C0000: ROM del 6809 de sonido 64K (d5) -->
+
         <part name="d5" crc="3b73b9c5"/>
     </rom>
 
-    <!-- DIP switches (gaelco.cpp INPUT_PORTS bigkarnk). DSW1=byte bajo (bits 0-7), DSW2=byte alto (8-15). -->
     <switches default="ff,ff" base="16">
-        <!-- DSW1 -->
+
         <dip name="Coin A" bits="0,3" ids="Free Play,1C/1C,1C/1C,1C/1C,1C/1C,1C/1C,2C/3C,4C/1C,3C/1C,2C/1C,1C/6C,1C/5C,1C/4C,1C/3C,1C/2C,1C/1C"/>
         <dip name="Coin B" bits="4,7" ids="Free Play,1C/1C,1C/1C,1C/1C,1C/1C,1C/1C,2C/3C,4C/1C,3C/1C,2C/1C,1C/6C,1C/5C,1C/4C,1C/3C,1C/2C,1C/1C"/>
-        <!-- DSW2 -->
+
         <dip name="Difficulty" bits="8,10" ids="7,6,5,4,3,2,1,0"/>
         <dip name="Lives" bits="11,12" ids="4,3,2,1"/>
         <dip name="Demo Sounds" bits="13" ids="On,Off"/>

@@ -1,26 +1,18 @@
-// ============================================================================
-//  BigKarnak (Gaelco) — CAPA de sprites en tiempo real (doble buffer ping-pong).
-//
-//  Envuelve bigkarnk_sprite_engine: mientras se MUESTRA la linea N (banco N[0]), RENDERIZA
-//  la N+1 en el otro banco. Motor a clk pleno (ce=1) -> presupuesto de un scanline para
-//  los ~512 sprites (con early-out de los fuera de linea). 1 pulso start por cambio de vpos.
-//  line = next_vpos + 16 (visarea Y empieza en 16; calibrable).
-// ============================================================================
 `default_nettype none
 
 module bigkarnk_sprite_layer #(
-    parameter VTOTAL = 266,   // lo fija video_top (58.74 Hz); este default es solo fallback
+    parameter VTOTAL = 272,
     parameter integer YOFFS = 16
 )(
     input  wire        clk,
     input  wire        rst,
-    input  wire [8:0]  vpos,          // linea visible / vblank
-    input  wire [8:0]  hpos,          // x visible (0..319) = lb_x
+    input  wire [8:0]  vpos,
+    input  wire [8:0]  hpos,
 
     output wire [10:0] spr_a,  input wire [15:0] spr_q,
     output wire [19:0] rom_a,  input wire [7:0] d_p0, d_p1, d_p2, d_p3, input wire gfx_ok,
 
-    output wire [12:0] lb_q,          // {priority[2:0], color[5:0], pen[3:0]}
+    output wire [12:0] lb_q,
     output wire        busy
 );
     reg [8:0] vpos_d;
@@ -31,15 +23,13 @@ module bigkarnk_sprite_layer #(
     wire       rbank = vpos[0];
     wire       wbank = next_vpos[0];
 
-    // SOLO-SIM: durante el boot la spriteRAM tiene basura del test de RAM; procesarla satura el motor y
-    // ralentiza el sim ~15x. Saltamos el procesado de sprites hasta pasar el boot (frame ~140). NO afecta a HW.
     wire boot_skip;
 `ifdef BIGKARNK_SCENE
-    assign boot_skip = 1'b0;          // REPLAY: escena precargada limpia, sin basura de boot -> motor ON
+    assign boot_skip = 1'b0;
 `elsif SIMULATION
     reg [15:0] frm = 0;
-    always @(posedge clk) if (line_change && vpos==9'd0) frm <= frm + 16'd1;   // frontera de frame
-    assign boot_skip = (frm < 16'd140);   // boot real: salta la basura del test de RAM en spriteRAM
+    always @(posedge clk) if (line_change && vpos==9'd0) frm <= frm + 16'd1;
+    assign boot_skip = (frm < 16'd140);
 `else
     assign boot_skip = 1'b0;
 `endif

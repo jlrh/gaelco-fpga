@@ -1,51 +1,15 @@
-# cfg/macros.def — core jtframe JTBIGKARNK (Big Karnak, Gaelco 1991, hw Tipo-1 gaelco.cpp).
-#
-# Reusa la infra probada de WRally/squash (CLK48 + SDRAM96 + memgen game_sdram) + el motor
-# de video Tipo-1 YA VALIDADO (squash/thoop).
-# DIFERENCIAS clave de Big Karnak:
-#   - SIN DS5002 (placa REF.901112-1, "Unprotected"): sin coprocesador, sin BRAM PROM, sin
-#     handshake. El Gaelco MAS FACIL de arrancar de toda la familia.
-#   - SIN cifrado de VRAM (vram_w plano en gaelco.cpp): NO se usa vram_decrypt.
-#   - SONIDO con CPU DEDICADA (NUEVO): MC6809E @2MHz + YM3812 (OPL2) @4MHz + OKIM6295 @~1MHz.
-#     (jtbigkarnk_game instancia bigkarnk_sound; el OKI NO cuelga del bus del 68k.)
-#   - Paleta xBGR-555 -> JTFRAME_COLORW=5.
-#   - Pantalla 320x240 (visarea 0..319 x 16..255), refresh 58.74 Hz.
-#
-# FLUJO: jtcore lee este fichero + cfg/mem.yaml y AUTO-GENERA jtbigkarnk_game_sdram.v (GAMETOP)
-# que instancia hdl/jtbigkarnk_game.v + slots SDRAM + dwnld.
-#
-# ⚠ NOMENCLATURA (convención del proyecto, ver research/CONVENCION-NOMBRES.md):
-#   CORENAME **SIN el prefijo `jt`** -> el .rbf sale `bigkarnk.rbf` (se archiva `bigkarnk_YYYYMMDD.rbf`).
-#   El `jt` es la marca PERSONAL de jotego (Jose Tejada); estos cores son NUESTROS (sobre infra JTFRAME
-#   GPL, crédito mantenido), NO suyos -> no debe inducir a pensar que el core es de jotego.
-#   GAMETOP/módulos internos `jtbigkarnk_*` SÍ conservan `jt` (son estructura interna de JTFRAME, no visibles).
 CORENAME=BIGKARNK
 GAMETOP=jtbigkarnk_game_sdram
 
-# Pantalla: 320x240, ROT0 horizontal. xBGR-555 = 5 bits/canal.
 JTFRAME_WIDTH=320
 JTFRAME_HEIGHT=240
 JTFRAME_COLORW=5
 
-# pxl_cen/pxl2_cen son SALIDAS del game (las generamos en hdl/jtbigkarnk_game.v). El refresco
-# 58.74 Hz se calibra en el modulo de timing de video (htotal x vtotal x pxlclk).
-
-# Botones: 2 (joystick 8-way + BUTTON1/BUTTON2 por jugador; confirmado INPUT_PORTS bigkarnk).
 JTFRAME_BUTTONS=2
 
-# Reloj: game a 48MHz (clk48), SDRAM a 96MHz (SDRAM96) = camino HW-probado.
-# 68000 a 12MHz = clk48/4. 6809 a 2MHz. YM3812 4MHz. OKI ~1MHz.
 JTFRAME_CLK48
 JTFRAME_SDRAM96
 
-# Reparto de la .mra (direccion de BYTE en el stream de descarga). TAMANOS Big Karnak:
-#   ba0 = prog 68000   512KB @0          (d16 even 256KB + d19 odd 256KB, interleave 16-bit)
-#   ba1 = gfx          2MB   @0x080000   (REGION 0x200000 = 4 planos RGN_FRAC(1,4) 512KB c/u:
-#                                         h5,h10,h8,h6 -> de-interleave a confirmar en sim/HW)
-#   ba2 = OKI samples  256KB @0x280000   (d1, NO banked)
-#   audiocpu (6809)    64KB  @0x2C0000   (d5) -> ver mem.yaml (BRAM/PROM o bank propio)
-# (sin PROM DS5002.)
-# PROVISIONAL: los offsets exactos se fijan al cocinar la .mra con la ROM real.
 JTFRAME_BA1_START=0x080000
 JTFRAME_BA2_START=0x280000
 JTFRAME_BA3_START=0x2C0000
@@ -53,5 +17,15 @@ JTFRAME_BA3_START=0x2C0000
 [mister]
 JTFRAME_ARX=4
 JTFRAME_ARY=3
-# Quitar el LOGO JT del fondo del menu OSD (macro oficial jtframe). Core INDEPENDIENTE.
+
 JTFRAME_OSD_NOLOGO
+
+CRT_ADJUST
+
+CRT_ADJUST_HTOTAL=384
+CRT_ADJUST_VTOTAL=272
+
+CRT_ADJUST_RDBASE=64
+
+HPOS_SYNCSHIFT=0
+HPOS_CONTENTSHIFT=1
