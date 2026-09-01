@@ -430,7 +430,6 @@ hacen falta estas piezas, que se distribuyen desde su propio origen:
 | jt6295 — OKI MSM6295 (sonido ADPCM) | [https://github.com/jotego/jt6295](https://github.com/jotego/jt6295) | `modules/jt6295` |
 | jtopl — YM3812 / OPL2 (sonido). Exclusivo de Big Karnak entre los cores Gaelco de esta familia | [https://github.com/jotego/jtopl](https://github.com/jotego/jtopl) | `modules/jtopl` |
 <!-- /omf_release:dependencias:bigkarnk -->
-
 <!-- omf_release:dependencias:biomtoy -->
 ## Dependencias externas de `biomtoy`
 
