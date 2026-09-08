@@ -3,7 +3,7 @@
      sim byte a byte (= el blob validado en HW), + PADDING 512K para alinear el gfx a BA1_START=0x100000
      (el prog de glass son 512K < 1MB). Firmware DS5002FP en RUNTIME desde la .mra -> .rbf distribuible. -->
 <misterromdescription>
-    <rbf>glass_20260713</rbf>
+    <rbf>ffglass</rbf>
     <name>Glass (FF, Gaelco, 1993)</name>
     <setname>glassa</setname>
     <year>1993</year>

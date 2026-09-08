@@ -9,7 +9,7 @@
      Validado con mra2rom real vs el blob golden de aligator_sim_prep.py.
 -->
 <misterromdescription>
-    <rbf>aligator</rbf>
+    <rbf>ffaligator</rbf>
     <name>Alligator Hunt (FF, Gaelco, 1994)</name>
     <setname>aligator</setname>
     <year>1994</year>
