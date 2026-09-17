@@ -1,46 +1,21 @@
-# cfg/mem.yaml — subsistema de memoria del core JTWRALLY (World Rally, Gaelco 1993).
-#
-# jtcore (memgen) genera jtwrally_game_sdram.v (GAMETOP) a partir de aqui:
-#   - slots SDRAM (jtframe_rom_Nslots) por banco/bus
-#   - jtframe_dwnld (descarga ioctl -> SDRAM, byte-lanes)
-#   - BRAM (wrdallas via mecanismo PROM)
-# y conecta nuestro hdl/jtwrally_game.v por NOMBRE de bus (prog_addr/prog_cs/
-# prog_data/prog_ok, gfx0_*, gfx1_*, gfxs_*, oki_*, wrdallas_addr/wrdallas_data).
-#
-# Reparto = el de la .mra (ver cfg/macros.def). NOTA: los anchos (addr_width) son la
-# primera estimacion (espejo de s16); reconciliar contra el mem_ports.inc generado en
-# la 1a pasada de jtcore. Las VRAM/paleta/sprite-RAM siguen DENTRO de jtwrally_game
-# (wrally_vmem, BRAM verificada) -> NO van aqui.
-
 sdram:
   banks:
-    # Bank 0: programa del 68000 (1MB, 16-bit). Solo lectura en operacion.
-    # NOMBRE 'main' (NO 'prog': jtframe reserva prog_addr/prog_data para la descarga de ROM).
-    # addr_width=20 -> SLOT_AW=19 -> puerto main_addr[19:1] (= rom68k_addr del 68000).
+
     - buses:
         - { name: main, addr_width: 20, data_width: 16 }
 
-    # Bank 1: graficos (2MB). 3 clientes de 32-bit (4 planos cada lectura):
-    #   gfx0 = tilemap L0, gfx1 = tilemap L1, gfxs = sprites.
-    # Para DW=32 el generador anexa {addr,1'b0}; el game provee el indice de elemento.
-    # addr_width=21 -> puerto gfx*_addr[20:2] (19 bits = rom_a0[18:0], 512K elementos).
     - buses:
         - { name: gfx0, addr_width: 21, data_width: 32 }
         - { name: gfx1, addr_width: 21, data_width: 32 }
         - { name: gfxs, addr_width: 21, data_width: 32 }
 
-    # Bank 2: muestras del OKI MSM6295 (1MB, 8-bit).
-    # addr_width=20 -> puerto oki_addr[19:0] (20 bits byte address).
     - buses:
         - { name: oki, addr_width: 20, data_width: 8 }
 
 bram:
-  # ROM interna del DS5002FP (wrdallas.bin descifrada, 32KB). Cargada via el mecanismo
-  # PROM de jtframe (JTFRAME_PROM_START=0x400000 en macros.def). El game lee
-  # wrdallas_addr -> wrdallas_data (lectura registrada). El gateado por rom_en del
-  # r8051 (handshake DS5002) se hace DENTRO de jtwrally_game sobre wrdallas_data.
+
   - name: wrdallas
     addr_width: 15
     data_width: 8
     prom: true
-    simfile: {}   # SIM: precarga la BRAM (wrdallas.bin) en init -> evita la race del fast-PROM-load del sim
+    simfile: {}

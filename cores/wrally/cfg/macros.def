@@ -1,77 +1,19 @@
-# cfg/macros.def — config del core jtframe JTWRALLY (World Rally, Gaelco 1993).
-# Rama migrate-jtframe. Basado en jts16 (jotego) + plantilla memgen game_sdram.v.
-#
-# FLUJO: jtcore lee este fichero + cfg/mem.yaml y AUTO-GENERA jtwrally_game_sdram.v
-# (GAMETOP) que instancia nuestro hdl/jtwrally_game.v + los slots SDRAM + dwnld + BRAM.
-# (Macros por defecto = sin cabecera de seccion, como en s16. Sin comentarios inline.)
 CORENAME=JTWRALLY
 GAMETOP=jtwrally_game_sdram
 
-# Pantalla: 368x232, ROT0 horizontal, xBRG_444 = 4 bits/canal. WIDTH=368 = resolución real de MAME
-# (wrally.cpp). El 1px que faltaba se recuperó con el fix de=(hcnt<=HVIS) en wrally_video_timing.v (2026-06-27).
 JTFRAME_WIDTH=368
 JTFRAME_HEIGHT=232
 JTFRAME_COLORW=4
 
-# NO definimos JTFRAME_PXLCLK: el valor 7 NO lo soporta jtframe_pxlcen ($finish).
-# pxl_cen/pxl2_cen son SALIDAS del game y los generamos nosotros (clk/7 = 6.857MHz,
-# el rate verificado) en hdl/jtwrally_game.v.
-
-# Botones: Accel, Gear. BUTTONS=2 (layout nativo del juego). El intento de BUTTONS=3 (Button3 dummy
-# para empujar PAUSE_BIT=9 como aligator) NO funcionó: no daba pausa y ADEMÁS cambiaba el comportamiento
-# de los botones respecto a cómo se configuraban en el OSD -> revertido a 2 (decisión usuario 2026-06-25).
 JTFRAME_BUTTONS=2
 
-# Reloj: game a 48MHz (clk=clk48), SDRAM a 96MHz (JTFRAME_SDRAM96) = camino HW-probado
-# (igual que rungun/simson/toki: CLK48 + SDRAM96). El controlador a 96MHz da la ventana
-# de timing estandar de la SDRAM real; el 180SHIFT (necesario a 48MHz contra el modelo
-# del sim) se RETIRA: a 96MHz el SHIFTED por defecto (=0) es el correcto.
 JTFRAME_CLK48
-# V.048 EXPERIMENTO DECISIVO: SDRAM a clk48 (SDRAM96 COMENTADO). El CKS V.047 probo que el banco 0 pierde
-# el BYTE ALTO en HW (low byte correcto, high=0) -> lectura de 16 bits rota. La comparacion: simson (el unico
-# otro core SDRAM96 que tenemos) lee su prog en DW8 (byte a byte) -> NUNCA valida la lectura de 16 bits
-# cruzando clk96->clk48; biocom es DW16 pero CLK24 (sin cruce). Somos los UNICOS con DW16+SDRAM96. Sin SDRAM96,
-# jtframe pone clk_rom=clk_sys=clk48 y SDRAM_CLK=clk48sh -> SDRAM y slots en el MISMO dominio (sin cruce de 16b).
-# clk96 sigue del PLL -> video a salvo. Validado en sim (compila+arranca, CKS w0..w3=reset vector).
-# V.048 PROBADO: clk48 da resultado BIT-IDENTICO a clk96 -> el cruce NO era la causa. Volvemos a SDRAM96 (baseline).
-JTFRAME_SDRAM96
-# DIAGNOSTICO V.046 (TEMPORAL): WRALLY_CKS activa la FSM que lee el prog (banco 0, word 0..0x7FFFF) por el
-# bus 'main' AISLADO del 68k y lo checksumea vs CKS_GOLDEN=0x72E29C19 (validado offline contra el golden).
-# Pantalla: VERDE=match (el prog ESTA en el banco 0 y se lee bien) / ROJO=fail (no esta/no se lee) / barrido.
-# Parte "el download no escribe banco 0" vs "el 68k lee mal". (QUITAR tras el diagnostico.)
-# ★ V.052 (2026-06-18): DIAGNOSTICO CERRADO. La causa raiz era el .mra (faltaba map="01"/"10" en el prog
-#   -> el download no escribia el carril alto -> byte alto muerto). Verificado VERDE en HW (V.051-map):
-#   banco0 sum=0x72E29C19 golden. Quitamos WRALLY_CKS -> el 68k corre el JUEGO con la .mra V.052 (con map).
-# WRALLY_CKS
-# FIX 2026-06-17 (V.044): re-activamos el desfase de fase SDRAM. El 68k lee instrucciones CORRUPTAS de
-# la SDRAM en HW desde el arranque (V.043: fault1=0, nunca hace fetch de codigo real -> tormenta de
-# excepciones; sim sano). El cruce/fase del dato SDRAM a 96MHz era marginal con shift=0. JTFRAME_180SHIFT
-# genera el desfase con celda DDIO (no PLL) -> ventana de muestreo correcta. (Deco16, core 68k que funciona,
-# corre la SDRAM a clk48 sin cruce; nosotros ajustamos la fase del clk96.)
-# JTFRAME_180SHIFT  (V.044: probado, NO ayudo -igual que V.043- y metio -0.207 slack -> revertido para build limpio)
 
-# UART del game (telemetria de debug HW): da `output uart_tx` al game, que jtframe enruta a
-# USER_IO -> /dev/ttyS1 (con UART activo en el OSD). Conducido por wrally_dbg_uart (paquete de
-# 32 bytes: frame cnt, PC vivo/max 68k, firma/act MCU, escrituras VRAM/paleta, gfx no-listo y
-# salud SDRAM prog). Parser: mister/parse_uart_dbg.py.
-# HACEN FALTA LOS DOS macros (ver memoria wrally-jtframe-game-uart): GAME_UART = puertos +
-# conexion GAMETOP->game_tx; UART = quita el `assign game_tx=1` de jtframe_emu (si no, doble driver).
-# Ademas la plantilla memgen game_sdram.v esta parcheada para conectar el uart del u_game.
+JTFRAME_SDRAM96
+
 JTFRAME_GAME_UART
 JTFRAME_UART
 
-# DIAGNOSTICO V.040 (TEMPORAL): deshabilita la IRQ de vblank del 68k. El 68k se atasca clusterando en
-# byte 0x50-0x64 = vectores de interrupcion 20-25 (todos -> 0x400 = rte) -> sospecha: autovector (VPAn,
-# que es REGISTRADO = 1 ciclo tarde) falla en HW -> IRQ mal vectorizada -> el 68k no avanza al wake. La
-# IRQ esta ACTIVA en sim y HW (sim la tolera, HW no). Si con la IRQ OFF aparece el juego/firma=a53e ->
-# CONFIRMADO -> arreglar VPAn (combinacional) y RE-HABILITAR. (QUITAR este define tras el diagnostico.)
-# DBG_NOIRQ   (DESACTIVADO temporalmente para el sim-trace de IRQ: queremos IRQ ON en sim para ver si reproduce HW)
-
-# Reparto de la .mra (direccion de BYTE en el stream de descarga)
-#   ba0 = prog 68000  1MB  @0
-#   ba1 = gfx         2MB  @0x100000  (planos [i07,i09,i11,i13])
-#   ba2 = OKI samples 1MB  @0x300000
-#   wrdallas (DS5002 rom) 32KB @0x400000 -> BRAM via mecanismo PROM
 JTFRAME_BA1_START=0x100000
 JTFRAME_BA2_START=0x300000
 JTFRAME_PROM_START=0x400000
@@ -79,13 +21,7 @@ JTFRAME_PROM_START=0x400000
 [mister]
 JTFRAME_ARX=4
 JTFRAME_ARY=3
-# FIX 2026-06-17: jtframe_joy1_pos (instanciado por defecto) usa status[18:19]. Con el DIPBASE=16
-# por defecto, los DIP del juego (bits 2,3 = Joysticks/Control) caen en status[18:19] -> COLISION
-# -> el 68k lee el DIP Control corrupto en HW. jtframe sube DIPBASE a 20 cuando hay joy1_pos; lo
-# forzamos explicito (+ .mra base="20") para mover los DIP por encima de los bits del joy1_pos.
+
 JTFRAME_DIPBASE=20
 
-# Quitar el LOGO JT del fondo del menu OSD (macro oficial de jtframe; en sys/osd.sv fuerza
-# logo_enb=1 -> logo_blank=1 -> fondo OSD normal sin el logo). Este core USA jtframe pero es
-# INDEPENDIENTE, no es un core de jotego -> no debe lucir su logo de marca.
 JTFRAME_OSD_NOLOGO

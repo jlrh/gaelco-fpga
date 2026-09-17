@@ -1,14 +1,10 @@
-# cfg/files.yaml — lista de fuentes del core JTWRALLY (World Rally, Gaelco).
-# jtframe mergea esto con los ficheros del framework (board/sdram/dwnld/slots/prom)
-# y del target. Los HDL se buscan en cores/wrally/hdl/.
-# NOTA: instruction.v NO se lista (es un `include dentro de r8051.v; vive en hdl/).
 wrally:
   - get:
-    # --- game (contrato jtframe) ---
+
     - jtwrally_game.v
-    # --- telemetria UART de debug HW (ver memoria wrally-jtframe-game-uart) ---
+
     - wrally_dbg_uart.v
-    # --- CPU / placa (verificado vs MAME) ---
+
     - wrally_main.v
     - wrally_addr_decode.v
     - wrally_vram_decrypt.v
@@ -17,7 +13,7 @@ wrally:
     - wrally_clocks.v
     - wrally_inputs.v
     - wrally_vmem.v
-    # --- video (pixel-exacto verificado) ---
+
     - wrally_video_top.v
     - wrally_video.v
     - wrally_video_timing.v
@@ -27,11 +23,11 @@ wrally:
     - wrally_sprite_engine.v
     - wrally_gfx_decode.v
     - wrally_palette.v
-    # --- DS5002 (mc8051 Oregano/jtframe, COMPLETO; SWAP del r8051 hobby, rama swap-mc8051) ---
-    - wrally_mcu.v       # wrapper: IRAM/SFR internos; solo ROM + xdata (MOVX) externos
-    - mc8051_regen.v     # core mc8051 (VHDL->Verilog via ghdl; tools/regen_mc8051.sh)
-    - jtframe_ram_rst.v  # IRAM 256B del wrapper (módulo jtframe; dep jtframe_ram ya incluida)
-    # --- OKI (jt6295, GPLv3) ---
+
+    - wrally_mcu.v
+    - mc8051_regen.v
+    - jtframe_ram_rst.v
+
     - jt6295.v
     - jt6295_acc.v
     - jt6295_adpcm.v
@@ -40,9 +36,11 @@ wrally:
     - jt6295_serial.v
     - jt6295_sh_rst.v
     - jt6295_timing.v
-    # --- 68000 (fx68k, ijor, GPLv3); microrom/nanorom.mem en hdl/ ---
+
     - fx68k.sv
     - fx68kAlu.sv
     - uaddrPla.sv
-    # --- DTACK + cens del 68000 (copia local de jtframe_68kdtack_cen, sin freqinfo) ---
+
     - wrally_68kdtack.v
+
+    - wrally_clk48_96.sdc
