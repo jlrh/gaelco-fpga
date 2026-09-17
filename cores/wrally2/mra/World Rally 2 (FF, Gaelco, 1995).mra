@@ -1,17 +1,3 @@
-<!-- V.014 = wrally2 SOLO con wrally2.zip (SIN blob), SIN tocar el RTL (mismo .rbf jtwrally2_V009).
-     LA BUENA: la V.013 cargaba (firmware OK) pero fallaba colores/sonido = MAPS con orden de byte
-     INVERTIDO. El ensamblador mra2rom recorre los bytes de salida de j=(width-1) a 0 -> el byte 0 del
-     fichero sale de la POSICION 3 del map (invertido). Maps correctos = los de aligator: ic69="0012",
-     ic70="1200". Verificado en local: V.014 == wr2gfx.bin byte a byte en TODO lo que leen vídeo Y sonido
-     (planos 0-3 compartidos + plano4), 16MB exactos -> firmware en 0x1100000.
-     Estructura 4-lanes (loader-friendly, el loader la ensambla): en L2 (2ª mitad) los lanes 2,3 llevan
-     ic70 reusado = don't-care (el RTL fuerza planos 2,3 a 0 ahí, y el sonido no direcciona ahí).
-     Layout (pre-SWAB para el SWAB del download DW32):
-       L1 4MB: ic69[0:2M] par/impar + ic70 par/impar   (planos 0-3)
-       L2 4MB: ic69[2M:4M] par/impar + ic70 (lanes 2,3 don't-care)
-       U1 4MB: ic68 (plano4) en las 4 lanes
-       U2 4MB: gap -> 16MB
-     PROBAR HW: test_mra.sh (UART scratch>0) + screenshot (colores) + oido (sonido). -->
 <misterromdescription>
     <rbf>ffwrally2</rbf>
     <name>World Rally 2 (FF, Gaelco, 1995)</name>
@@ -25,29 +11,29 @@
 
     <rom index="0" zip="wrally2.zip" type="merged" md5="none">
         <interleave output="16">
-            <part name="wr2_64.ic64" crc="4cdf4e1e" map="10"/>
-            <part name="wr2_63.ic63" crc="94887c9f" map="01"/>
+            <part name="wrally2a/wr2_64.ic64" crc="4cdf4e1e" map="10"/>
+            <part name="wrally2a/wr2_63.ic63" crc="94887c9f" map="01"/>
         </interleave>
-        <!-- L1 (4MB): ic69[0:2M] par/impar + ic70 par/impar (maps mra2rom, = aligator) -->
+
         <interleave output="32">
-            <part name="wr2_ic69.ic69" length="0x200000" map="0012"/>
-            <part name="wr2_ic70.ic70" map="1200"/>
+            <part name="wrally2a/wr2_ic69.ic69" length="0x200000" map="0012"/>
+            <part name="wrally2a/wr2_ic70.ic70" map="1200"/>
         </interleave>
-        <!-- L2 (4MB): ic69[2M:4M] par/impar + ic70 (lanes 2,3 don't-care) -->
+
         <interleave output="32">
-            <part name="wr2_ic69.ic69" offset="0x200000" length="0x200000" map="0012"/>
-            <part name="wr2_ic70.ic70" map="1200"/>
+            <part name="wrally2a/wr2_ic69.ic69" offset="0x200000" length="0x200000" map="0012"/>
+            <part name="wrally2a/wr2_ic70.ic70" map="1200"/>
         </interleave>
-        <!-- U1 (4MB): ic68 (plano4) en las 4 lanes (4 partes, orden de byte mra2rom) -->
+
         <interleave output="32">
-            <part name="wr2_ic68.ic68" map="0001"/>
-            <part name="wr2_ic68.ic68" map="0010"/>
-            <part name="wr2_ic68.ic68" map="0100"/>
-            <part name="wr2_ic68.ic68" map="1000"/>
+            <part name="wrally2a/wr2_ic68.ic68" map="0001"/>
+            <part name="wrally2a/wr2_ic68.ic68" map="0010"/>
+            <part name="wrally2a/wr2_ic68.ic68" map="0100"/>
+            <part name="wrally2a/wr2_ic68.ic68" map="1000"/>
         </interleave>
-        <!-- U2 (4MB): gap -> 16MB exactos -> firmware en 0x1100000 -->
+
         <part repeat="0x400000">00</part>
-        <part name="wrally2_ds5002fp_sram.bin" crc="4c532e9e"/>
+        <part name="wrally2b/wrally2_ds5002fp_sram.bin" crc="4c532e9e"/>
     </rom>
 
     <switches default="ff,ff" base="16">

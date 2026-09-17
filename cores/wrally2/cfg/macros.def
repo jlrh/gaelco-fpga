@@ -1,74 +1,32 @@
-# cfg/macros.def — core jtframe JTWRALLY2 (Alligator Hunt, Gaelco 1994, hw Tipo-2 gaelco2.cpp, chip GAE1).
-#
-# SALTO de generacion vs Tipo-1 (squash/thoop/biomtoy): VIDEO y SONIDO NUEVOS (chip GAE1/CG-1V).
-#   - Video: 2 tilemaps 1024x512 (16x16, 5bpp, linescroll) + 2 bancos de 512 sprites + SOMBRAS/highlights.
-#     Paleta 64K (4096 colores x 16 variantes shadow/highlight). 320x240, 59.1 Hz.
-#   - Sonido: el mismo chip GAE1 (2 canales estereo, samples en las ROMs de gfx). NO OKI/jt6295.
-#   - DS5002FP (proteccion): firmware DUMPEADO (32KB). Runtime como WRally (mc8051 + BRAM).
-# Scaffold clonado de biomtoy (infra fx68k + build); el motor Tipo-1 se REEMPLAZA por el GAE1.
-#
-# FLUJO: jtcore lee este fichero + cfg/mem.yaml y AUTO-GENERA jtwrally2_game_sdram.v (GAMETOP).
 CORENAME=JTWRALLY2
 GAMETOP=jtwrally2_game_sdram
 
-# Pantalla: 1 monitor = 384x240. TWIN (2 monitores side-by-side) = 768. JTFRAME_WIDTH = ancho MÁXIMO de
-# la línea de vídeo (=768 para soportar twin; en single sólo 384 activos via DE). Paleta xRRRRRGGGGGBBBBB.
 JTFRAME_WIDTH=768
 JTFRAME_HEIGHT=240
 JTFRAME_COLORW=5
 
-# pxl_cen/pxl2_cen son SALIDAS del game (hdl/jtwrally2_game.v). Refresco 59.1 Hz en el timing de video.
-
-# Botones WR2: acelerador (BTN1) + marcha (BTN2, PORT_TOGGLE). Sin freno. El volante es ANALÓGICO
-# (2 ADC serie vía LS259) -> NO es botón; se mapea aparte en wrally2_inputs (Fase 2). DSW joystick-fallback.
 JTFRAME_BUTTONS=2
 
-# Volantes analógicos (2 ADC serie): el eje X del stick analógico (joyana_l1/l2 de jtframe, SIEMPRE
-# cableado por el wrapper). Los consume wrally2_adc.v (LS259 q5=clk q6=cs) -> IN0/IN2 b6. Sólo activos
-# con DSW "Pot Wheel". (No se usa JTFRAME_PADDLE: el wrapper memgen NO conecta paddle_* + bug paddle_0.)
-
-# Reloj: game a 48MHz (clk48), SDRAM a 96MHz (SDRAM96) = camino HW-probado.
-# ⚠️ PENDIENTE WR2: 68000 y DS5002 a 13 MHz (26M/2), no 12 -> recalcular cen (clk48/4=12 es lo clonado de
-#    aligator; 13 no divide 48 exacto -> usar jtframe_cen fraccional o aceptar 12 inicialmente).
 JTFRAME_CLK48
 JTFRAME_SDRAM96
-# gfx = 16MB (4 planos DW32) + prog 1MB + firmware -> >16MB -> SDRAM de 32MB (SDRAMW=24).
+
 JTFRAME_SDRAM_LARGE
 
-# Sonido GAE1 = 2 canales ESTÉREO -> snd_left/snd_right.
 JTFRAME_STEREO
 
-# UART del game (TELEMETRIA DS5002 en HW): diagnostica el "Coprocessor Not Ready" (handshake OK en
-# sim, falla en HW). Da `output uart_tx` al game (hdl/jtwrally2_game.v -> wrally2_dbg_uart), enrutado
-# por jtframe a USER_IO -> /dev/ttyS1 (con UART activo en el OSD). Paquete de 16 bytes: mcu_pcmax /
-# mcu_fetch / mcuw / key / 68k_pcmax. Parser: mister/parse_uart_dbg.py.
-# HACEN FALTA LOS DOS macros (igual que WRally, ver memoria wrally-jtframe-game-uart):
-#   GAME_UART = añade el puerto uart_tx al game + lo conecta en el GAMETOP (memgen ya tiene el hook).
-#   UART      = en jtframe_emu.sv quita el `assign game_tx=1` (evita doble-driver) y hace
-#               `assign UART_TXD = game_tx` -> la telemetria del game llega a /dev/ttyS1.
 JTFRAME_GAME_UART
 JTFRAME_UART
 
-# Reparto de la .mra (direccion de BYTE en el stream de descarga):
-#   ba0 = prog 68000  1MB  @0           (u45 par 512K + u44 impar 512K -> 0x100000 exacto, simetrico)
-#   ba1 = gfx 16MB @0x100000            (4 planos REALES de 4MB c/u, de u47-u50 split even/odd; plano5=0 en RTL)
-#   firmware DS5002 (32KB) @0x1100000   -> a BRAM en runtime (camino WRally; fase DS5002, no banco SDRAM)
-# (SIN OKI: el sonido lo hace el GAE1 leyendo de las ROMs de gfx.)
 JTFRAME_BA1_START=0x100000
 
-# Firmware DS5002FP (32KB) en la .mra @0x1100000 (tras gfx 16MB) -> BRAM via mecanismo PROM.
 JTFRAME_PROM_START=0x1100000
 
 [mister]
 JTFRAME_ARX=4
 JTFRAME_ARY=3
-# TWIN (768) -> ARX 8:3 automatico en "Original" (2 monitores 4:3). Sin esto, el twin sale a 4:3
-# y el usuario tiene que meter custom_aspect_ratio_1=8:3 en MiSTer.ini a mano. Gateado en
-# jtframe_mister.sv (status[14]=disp_twin): single sigue 4:3, twin -> 8:3. Ver research/WRALLY2-PENDIENTE-ARX-TWIN.md.
+
 JTFRAME_TWIN_ARX
-# Quitar el LOGO JT del fondo del menu OSD (macro oficial jtframe). Core INDEPENDIENTE.
+
 JTFRAME_OSD_NOLOGO
 
-# Opción de OSD "Monitor" (dual-monitor): bits status[14:13] (D,E). 0=Left 1=Right 2=Twin(768).
-# El game lee disp_index=status[13], disp_twin=status[14]. Single=384px@8MHz, Twin=768px@16MHz (vblank 60Hz).
 CORE_OSD=ODE,Monitor,Left,Right,Twin;

@@ -480,3 +480,16 @@ hacen falta estas piezas, que se distribuyen desde su propio origen:
 | fx68k — MC68000 (CPU principal): fx68k.sv, fx68kAlu.sv, uaddrPla.sv + microrom.mem/nanorom.mem | [https://github.com/jtfpga/fx68k](https://github.com/jtfpga/fx68k) | `modules/fx68k` |
 | jt6295 — OKI MSM6295 (sonido ADPCM) | [https://github.com/jotego/jt6295](https://github.com/jotego/jt6295) | `modules/jt6295` |
 <!-- /omf_release:dependencias:ffthoop -->
+
+<!-- omf_release:dependencias:ffwrally2 -->
+## Dependencias externas de `ffwrally2`
+
+Este repositorio contiene **solo el código de los cores**. Para compilar `ffwrally2`
+hacen falta estas piezas, que se distribuyen desde su propio origen:
+
+| Qué | De dónde | Dónde va |
+|---|---|---|
+| jtframe — framework de compilacion y modulos comunes (video, sdram, ram, dwnld, OSD, mc8051) | [https://github.com/jotego/jtframe](https://github.com/jotego/jtframe) | `modules/jtframe` |
+| fx68k — MC68000 (CPU principal): fx68k.sv, fx68kAlu.sv, uaddrPla.sv | [https://github.com/jtfpga/fx68k](https://github.com/jtfpga/fx68k) | `modules/fx68k` |
+| mc8051 — DS5002FP (coprocesador de proteccion): core mc8051 de Oregano Systems, distribuido dentro de jtframe. cores/wrally2/hdl/mc8051_regen.v es su regeneracion VHDL->Verilog (ghdl) vendorizada localmente. | [https://github.com/jotego/jtframe](https://github.com/jotego/jtframe) | `modules/jtframe/hdl/cpu/8051` |
+<!-- /omf_release:dependencias:ffwrally2 -->

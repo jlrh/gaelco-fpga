@@ -1,27 +1,13 @@
-// ============================================================================
-//  wrally2_68kdtack.v — copia local de jtframe_68kdtack_cen (jotego, GPLv3) SIN el
-//  jtframe_freqinfo (solo reporte de frecuencia, arrastra deps) y con MFREQ literal.
-//
-//  Genera /DTACK del 68000 Y los clock-enables (cpu_cen/cpu_cenb) CO-GENERADOS y
-//  sincronizados con el DTACK. Esta co-generacion es CLAVE: el slot SDRAM de jtframe
-//  tiene latencia + ventana de `ok` rancio al cambiar de direccion; el `wait1` interno
-//  da 1 ciclo a bus_busy para conmutar (mata la carrera), y como el muestreo del 68000
-//  (en los cens generados aqui) esta alineado con el DTACK, la CPU latchea el dato
-//  FRESCO. (Con cens externos NO sincronizados, el 68000 muestreaba el dato rancio
-//  -> desfase de 1 word -> reset vector roto. Ver memoria wrally-migracion-jtframe.)
-//
-//  cpu_cen/cpu_cenb -> fx68k enPhi1/enPhi2. Para 12 MHz desde clk=48 MHz: num=1, den=4.
-// ============================================================================
 module wrally2_68kdtack
 #(parameter W=8,
             RECOVERY=1,
             WD=6,
             WAIT1=0,
-            MFREQ=48000  // kHz (clk=48MHz); solo para el (eliminado) reporte de frecuencia
+            MFREQ=48000
 )(
     input         rst,
     input         clk,
-    input         cen_en,    // 1 = corre normal; 0 = PAUSA (congela contador y cens del 68k)
+    input         cen_en,
     output   reg  cpu_cen,
     output   reg  cpu_cenb,
     input         bus_cs,
@@ -63,7 +49,7 @@ always @(posedge clk) begin : dtack_gen
     end else begin
         if( ASn | &DSn ) begin
             DTACKn <= 1;
-            wait1  <= 1; // gives a clock cycle to bus_busy to toggle
+            wait1  <= 1;
             waitsh <= {wait3,wait2};
         end else if( !ASn && (cpu_cen || WAIT1==0) ) begin
             wait1 <= 0;
@@ -109,7 +95,7 @@ always @(posedge clk) begin
         cpu_cenb <= ~risefall;
         risefall <= ~risefall;
     end else begin
-        cpu_cen  <= 0;        // PAUSA (cen_en=0) -> sin pulsos -> 68k congelado
+        cpu_cen  <= 0;
         cpu_cenb <= 0;
     end
 end

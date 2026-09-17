@@ -1,22 +1,11 @@
-// ============================================================================
-//  Alligator Hunt (Gaelco, Tipo-2 / chip GAE1) — Paleta + ajuste shadow/highlight.
-//
-//  Color base = palabra de paleta xRRRRRGGGGGBBBBB (5-5-5). La VARIANTE (0..15) la fijan los
-//  sprites de sombra (color==0x7f) por RMW del fondo; aquí se aplica el mismo ajuste que MAME
-//  (gaelco2_v.cpp palette_w + pen_color_adjust), en espacio de 8 bits, y se devuelve 5 bits:
-//    R8 = pal5bit(color>>10) ; aux = clamp(R8 + adj[variant], 0, 255) ; salida = aux>>3
-//    adj = {0,-8,-16,-24,-32,-40,-48,-56, +64,+56,+48,+40,+32,+24,+16,+8}  (RGB_CHG=8)
-//  variant 0 -> adj 0 -> color directo (tilemaps sin sombra). pal5bit(v)= (v<<3)|(v>>2).
-//  Combinacional puro.
-// ============================================================================
 `default_nettype none
 
 module wrally2_gae1_palette (
-    input  wire [15:0] pal_word,   // xRRRRRGGGGGBBBBB
-    input  wire [3:0]  variant,    // 0..15 (0 = normal)
+    input  wire [15:0] pal_word,
+    input  wire [3:0]  variant,
     output wire [4:0]  r, g, b
 );
-    // pal5bit: expande 5->8 replicando los 3 MSB
+
     wire [4:0] r5 = pal_word[14:10];
     wire [4:0] g5 = pal_word[9:5];
     wire [4:0] b5 = pal_word[4:0];
@@ -24,7 +13,6 @@ module wrally2_gae1_palette (
     wire [7:0] g8 = {g5, g5[4:2]};
     wire [7:0] b8 = {b5, b5[4:2]};
 
-    // ajuste con signo segun la variante
     function signed [8:0] adj;
         input [3:0] v;
         case (v)
@@ -48,7 +36,6 @@ module wrally2_gae1_palette (
     endfunction
     wire signed [8:0] a = adj(variant);
 
-    // clamp(canal8 + a, 0, 255) -> 5 bits altos
     function [4:0] adjclamp;
         input [7:0] c8;
         input signed [8:0] off;

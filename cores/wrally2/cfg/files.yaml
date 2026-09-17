@@ -1,46 +1,29 @@
-# cfg/files.yaml — fuentes del core JTWRALLY2 (Alligator Hunt, Gaelco 1994, Tipo-2 gaelco2.cpp).
-# jtframe mergea esto con los ficheros del framework (board/sdram/dwnld/slots) y del target.
-# HDL en cores/wrally2/hdl/.
-#
-# FASE "BUS gaelco2": se construye SOLO la capa CPU/bus (mapa gaelco2, VRAM plana, vregs, I/O,
-# RAM compartida DS5002) + un STUB de vídeo (solo timing). El MOTOR GAE1 (2 tilemaps 5bpp +
-# linescroll + sprites + sombras), el SONIDO GAE1 y el DS5002 son fases posteriores; sus
-# ficheros (los Tipo-1 clonados, jt6295, cifrado) quedan EN DISCO pero FUERA del build hasta
-# adaptarlos/reemplazarlos por el motor GAE1.
 wrally2:
   - get:
-    # --- game (contrato jtframe) ---
+
     - jtwrally2_game.v
-    # --- CPU / placa (mapa gaelco2) ---
+
     - wrally2_main.v
-    - wrally2_dbg_uart.v       # TELEMETRIA UART del DS5002 (diag HW "Coprocessor Not Ready")
+    - wrally2_dbg_uart.v
     - wrally2_addr_decode.v
     - wrally2_inputs.v
     - wrally2_adc.v
-    - wrally2_vmem.v           # VRAM 64KB (paridad de word, sirve par de tile) + paleta 8KB
-    # --- video GAE1 (gaelco2_v.cpp), STEP A = tilemaps ---
-    - wrally2_video_timing.v   # timing H/V + vblank_irq
-    - wrally2_video_top.v      # timing + compositor + paleta -> RGB
-    - wrally2_gae1_video.v     # compositor 2 tilemaps (prioridad fija tm0>tm1) + scroll
-    - wrally2_gae1_tilemap.v   # tilemap 64x32 de 16x16 5bpp, fetch-por-pixel
-    - wrally2_gae1_sprite.v    # motor de sprites por línea (indirección + tamaños + sombras RMW)
-    - wrally2_gae1_palette.v   # RGB555 + ajuste shadow/highlight
-    - wrally2_gae1_sound.v     # sonido GAE1: 7 canales estéreo, samples en las ROMs de gfx (volume_table.mem)
-    # --- 68000 (fx68k, ijor, GPLv3); microrom/nanorom.mem en hdl/ ---
+    - wrally2_vmem.v
+
+    - wrally2_video_timing.v
+    - wrally2_video_top.v
+    - wrally2_gae1_video.v
+    - wrally2_gae1_tilemap.v
+    - wrally2_gae1_sprite.v
+    - wrally2_gae1_palette.v
+    - wrally2_gae1_sound.v
+
     - fx68k.sv
     - fx68kAlu.sv
     - uaddrPla.sv
-    # --- DTACK + cens del 68000 (copia local, sin freqinfo) ---
+
     - wrally2_68kdtack.v
-    # --- DS5002FP (mc8051 Oregano/jtframe, COMPLETO; mismo camino que WRally) ---
-    - wrally2_mcu.v     # wrapper: IRAM/SFR internos; ROM (firmware) + xdata (MOVX) externos
-    - mc8051_regen.v     # core mc8051 (VHDL->Verilog via ghdl)
-    - jtframe_ram_rst.v  # IRAM 256B del wrapper
-    # === FUERA DEL BUILD (fase GAE1/sonido/DS5002) — se reintroducen al adaptarlos ===
-    # Tipo-1 clonado (base para el motor GAE1):
-    #   - wrally2_video_top.v / wrally2_video.v / wrally2_tilemap.v / wrally2_palette.v
-    #   - wrally2_gfx_decode.v / wrally2_sprite_layer.v / wrally2_sprite_engine.v
-    # Sonido OKI Tipo-1 (gaelco2 usa el GAE1, NO OKI):
-    #   - wrally2_oki.v / wrally2_iolatch.v / jt6295*.v
-    # Cifrado VRAM Tipo-1 (gaelco2 NO cifra):
-    #   - wrally2_vram_decrypt.v
+
+    - wrally2_mcu.v
+    - mc8051_regen.v
+    - jtframe_ram_rst.v
