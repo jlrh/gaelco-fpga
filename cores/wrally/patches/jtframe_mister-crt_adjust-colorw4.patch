@@ -1,0 +1,68 @@
+--- /c/_PROYECTOS/Gaelco/jt_ref/jtcores/modules/jtframe/target/mister/hdl/jtframe_mister.sv	2026-07-28 20:54:15.865332100 +0200
++++ /c/_PROYECTOS/fpga-wrally/jtroot/modules/jtframe/target/mister/hdl/jtframe_mister.sv	2026-09-17 15:19:36.057654700 +0200
+@@ -663,7 +663,19 @@
+     assign hsize_b  = game_b;
+ `endif
+ 
++// CRT_ADJUST (si esta activo) siempre saca 8 bits/canal fijos (crt_adjust.sv es de anchura fija),
++// sea cual sea el COLORW de entrada del core -- final_rgb de mas abajo es SIEMPRE 24 bits en ese
++// camino. Sin este `ifdef`, COLORW=4 (wrally) daba VIDEO_DW=12 (formula pensada solo para COLORW=5
++// u 8, donde 3*COLORW ya salia a 24 por coincidencia) -> arcade_video truncaba los 24 bits reales
++// de final_rgb a 12, leyendo trozos de canal que no eran los reales -> colores rotos en pantalla
++// (bug real, 2026-09-17, encontrado al integrar CRT_ADJUST en wrally). El camino SIN CRT_ADJUST no
++// se toca: sigue siendo 3*COLORW para cualquier COLORW!=5 (no romper los cores Tipo-1 que ya
++// funcionan sin CRT_ADJUST, p.ej. squash/thoop/biomtoy).
++`ifdef CRT_ADJUST
++localparam VIDEO_DW = 24;
++`else
+ localparam VIDEO_DW = COLORW!=5 ? 3*COLORW : 24;
++`endif
+ 
+ wire [VIDEO_DW-1:0] game_rgb;
+ wire [COLORW-1:0] base_r, base_g, base_b;
+@@ -696,13 +708,15 @@
+ // propio modulo).
+ // ============================================================================
+ `ifdef CRT_ADJUST
+-// Guarda de anchura: el wiring de abajo soporta COLORW=5 (piloto asterix,
+-// expansion 5b->8b de base_r/g/b) y COLORW=8 (cowboys, ya viene a 8b, paso
+-// directo -- crt_adjust.sv en si es siempre 8 bits/canal fijo, igual criterio
+-// que ya usa game_rgb mas arriba, linea ~676). Cualquier otro ancho no esta
+-// probado todavia -> $fatal en vez de sintetizar mal en silencio.
+-generate if (COLORW!=5 && COLORW!=8) begin: crt_adjust_colorw_guard
+-    initial $fatal(1, "CRT_ADJUST (jtframe_mister.sv) solo soporta COLORW=5 u 8 por ahora");
++// Guarda de anchura: el wiring de abajo soporta COLORW=4 (wrally, xBRG_444,
++// replicacion de nibble 4b->8b -- mismo criterio que la expansion 5b->8b),
++// COLORW=5 (piloto asterix, expansion 5b->8b de base_r/g/b) y COLORW=8
++// (cowboys, ya viene a 8b, paso directo -- crt_adjust.sv en si es siempre 8
++// bits/canal fijo, igual criterio que ya usa game_rgb mas arriba, linea
++// ~676). Cualquier otro ancho no esta probado todavia -> $fatal en vez de
++// sintetizar mal en silencio.
++generate if (COLORW!=4 && COLORW!=5 && COLORW!=8) begin: crt_adjust_colorw_guard
++    initial $fatal(1, "CRT_ADJUST (jtframe_mister.sv) solo soporta COLORW=4, 5 u 8 por ahora");
+ end endgenerate
+ 
+ // status[64]    : crt_en           (On/Off, 0 = passthrough del modulo)
+@@ -748,12 +762,20 @@
+ 
+ // Misma entrada que hoy consume u_arcade_video (base_r/g/b + ~base_lhbl/lvbl
+ // + hsize_hs/vs), para no adivinar latencias internas de jtframe_board.
+-// COLORW=5 (asterix): expansion 5b->8b, igual que siempre. COLORW=8 (cowboys):
++// COLORW=4 (wrally): replicacion de nibble 4b->8b ({base_r,base_r}) -- un
++// `assign` directo de 4b en un wire de 8b haria zero-extend (0xF -> 0x0F,
++// oscurece en vez de escalar) en vez de repetir el patron de bits, que es lo
++// que espera un DAC/pass-through de color. COLORW=5 (asterix): expansion
++// 5b->8b replicando los 3 bits altos, igual que siempre. COLORW=8 (cowboys):
+ // base_r/g/b ya vienen a 8b -> paso directo, sin conversion (el guard de
+ // arriba ya descarta cualquier otro ancho).
+ wire [7:0] crt_r_in, crt_g_in, crt_b_in;
+ generate
+-    if (COLORW==5) begin: crt_adjust_rgb_expand
++    if (COLORW==4) begin: crt_adjust_rgb_expand4
++        assign crt_r_in = {base_r, base_r};
++        assign crt_g_in = {base_g, base_g};
++        assign crt_b_in = {base_b, base_b};
++    end else if (COLORW==5) begin: crt_adjust_rgb_expand5
+         assign crt_r_in = {base_r, base_r[4:2]};
+         assign crt_g_in = {base_g, base_g[4:2]};
+         assign crt_b_in = {base_b, base_b[4:2]};
