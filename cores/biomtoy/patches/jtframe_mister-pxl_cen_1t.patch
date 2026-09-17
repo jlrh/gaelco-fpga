@@ -1,0 +1,36 @@
+diff --git a/modules/jtframe/target/mister/hdl/jtframe_mister.sv b/modules/jtframe/target/mister/hdl/jtframe_mister.sv
+index b2f2bb7..4eefa57 100644
+--- a/modules/jtframe/target/mister/hdl/jtframe_mister.sv
++++ b/modules/jtframe/target/mister/hdl/jtframe_mister.sv
+@@ -745,6 +745,22 @@ always @(posedge clk_sys) begin
+ end
+ wire crt_rd_ce = crt_en_q ? crt_rd_tick : pxl_cen;
+ 
++// FIX 2026-09-01 (imagen partida en dos en cores con JTFRAME_SDRAM96):
++// crt_adjust va a `clk_sys`, que con JTFRAME_SDRAM96 es clk96 (jtframe_emu.sv:282-287),
++// pero `pxl_cen` lo genera el game a clk48 -> el pulso dura DOS ciclos de clk96. El lado
++// de escritura del modulo (crt_adjust.sv:240-247) hace `wrp <= wrp + 1'b1` en CADA ciclo
++// con pxl_cen alto -> el puntero avanza 2 veces por pixel -> 768 escrituras por linea de
++// 384 px -> `wrp[AW-2:0]` da la vuelta a mitad de linea y el final machaca el principio
++// -> la imagen sale partida con las mitades intercambiadas de lado.
++// asterix (unico core donde CRT Adjust funcionaba) NO define JTFRAME_SDRAM96: alli
++// clk_sys=48MHz ES el reloj que genera pxl_cen, el pulso dura 1 ciclo y no se duplica.
++// Detectar el flanco lo deja en 1 ciclo de clk_sys por pixel en AMBOS casos (pxl_cen es
++// 1 de cada 8 ciclos como minimo, nunca hay dos pulsos consecutivos) -> no cambia el
++// comportamiento donde ya era correcto.
++reg  pxl_cen_d;
++always @(posedge clk_sys) pxl_cen_d <= pxl_cen;
++wire pxl_cen_1t = pxl_cen & ~pxl_cen_d;
++
+ // Misma entrada que hoy consume u_arcade_video (base_r/g/b + ~base_lhbl/lvbl
+ // + hsize_hs/vs), para no adivinar latencias internas de jtframe_board.
+ wire [7:0] crt_r_in = {base_r, base_r[4:2]};
+@@ -763,7 +779,7 @@ crt_adjust #(
+ `endif
+ ) u_crt_adjust (
+     .clk        ( clk_sys      ),
+-    .pxl_cen    ( pxl_cen      ),
++    .pxl_cen    ( pxl_cen_1t   ),   // 1 ciclo de clk_sys por pixel (ver FIX 2026-09-01 arriba)
+     .pxl2_cen   ( crt_rd_ce    ),
+     .active     ( crt_en_q     ),
+     .hsize      ( crt_hsize_r  ),

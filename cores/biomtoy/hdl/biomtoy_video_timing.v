@@ -38,12 +38,15 @@ module biomtoy_video_timing #(
     wire hmax = (hcnt == HTOTAL-1);
     wire vmax = (vcnt == VTOTAL-1);
 
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin
-            hcnt <= 0; vcnt <= 0;
-            hsync <= ~SYNC_ACTIVE; vsync <= ~SYNC_ACTIVE;
-            hblank <= 1'b1; vblank <= 1'b1; vblank_irq <= 1'b0;
-        end else if (ce_pix) begin
+`ifdef SIMULATION
+    initial begin
+        hcnt = 0; vcnt = 0;
+        hsync = ~SYNC_ACTIVE; vsync = ~SYNC_ACTIVE;
+        hblank = 1'b1; vblank = 1'b1; vblank_irq = 1'b0;
+    end
+`endif
+    always @(posedge clk) begin
+        if (ce_pix) begin
             vblank_irq <= 1'b0;
 
             if (hmax) begin

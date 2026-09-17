@@ -566,3 +566,16 @@ hacen falta estas piezas, que se distribuyen desde su propio origen:
 | mc8051 — DS5002FP (coprocesador de proteccion): core mc8051 de Oregano Systems, distribuido dentro de jtframe. cores/aligator/hdl/mc8051_regen.v es su regeneracion VHDL->Verilog (ghdl) vendorizada localmente. | [https://github.com/jotego/jtframe](https://github.com/jotego/jtframe) | `modules/jtframe/hdl/cpu/8051` |
 | crt_adjust (rmonic79) — Ajuste de geometria CRT de terceros (H-Size/H-Position/V-Shift), NO es funcionalidad de jtframe -- vendorizado sin modificar dentro de jtframe, activado por cfg/macros.def (CRT_ADJUST). COLORW=5 coincide con el piloto Asterix, sin parche adicional. | [https://github.com/rmonic79/MiSTer-CRT-Adjust](https://github.com/rmonic79/MiSTer-CRT-Adjust) | `modules/jtframe/hdl/video/rmonic79` |
 <!-- /omf_release:dependencias:ffaligator -->
+
+<!-- omf_release:dependencias:ffbiomtoy -->
+## Dependencias externas de `ffbiomtoy`
+
+Este repositorio contiene **solo el código de los cores**. Para compilar `ffbiomtoy`
+hacen falta estas piezas, que se distribuyen desde su propio origen:
+
+| Qué | De dónde | Dónde va |
+|---|---|---|
+| jtframe — framework de compilacion y modulos comunes (video, sdram, ram, dwnld, OSD). ⚠ NO sirve el upstream tal cual: este core lleva el parche local pxl_cen_1t en jtframe_mister.sv (ver cores/biomtoy/patches/), sin el cual CRT_ADJUST + JTFRAME_SDRAM96 sale con la imagen partida. | [https://github.com/jotego/jtframe](https://github.com/jotego/jtframe) | `modules/jtframe` |
+| fx68k — MC68000 (CPU principal): fx68k.sv, fx68kAlu.sv, uaddrPla.sv + microrom.mem/nanorom.mem | [https://github.com/jtfpga/fx68k](https://github.com/jtfpga/fx68k) | `modules/fx68k` |
+| jt6295 — OKI MSM6295 (sonido ADPCM) | [https://github.com/jotego/jt6295](https://github.com/jotego/jt6295) | `modules/jt6295` |
+<!-- /omf_release:dependencias:ffbiomtoy -->
