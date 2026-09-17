@@ -119,12 +119,15 @@ module squash_video_top #(
     localparam integer SD = LAT + DEADJ;
     reg [SD-1:0] hs_sr, vs_sr, hb_sr, vb_sr, de_sr;
 
+`ifdef SIMULATION
+    initial begin
+        hs_sr = {SD{1'b0}}; vs_sr = {SD{1'b0}};
+        hb_sr = {SD{1'b1}}; vb_sr = {SD{1'b1}};
+        de_sr = {SD{1'b0}};
+    end
+`endif
     always @(posedge clk) begin
-        if (rst) begin
-            hs_sr <= {SD{1'b0}}; vs_sr <= {SD{1'b0}};
-            hb_sr <= {SD{1'b1}}; vb_sr <= {SD{1'b1}};
-            de_sr <= {SD{1'b0}};
-        end else if (ce_pix) begin
+        if (ce_pix) begin
             hs_sr <= {hs_sr[SD-2:0], hs_i};
             vs_sr <= {vs_sr[SD-2:0], vs_i};
             hb_sr <= {hb_sr[SD-2:0], hb_i};
