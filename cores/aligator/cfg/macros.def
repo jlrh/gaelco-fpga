@@ -1,47 +1,37 @@
-# cfg/macros.def — core jtframe JTALIGATOR (Alligator Hunt, Gaelco 1994, hw Tipo-2 gaelco2.cpp, chip GAE1).
-#
-# SALTO de generacion vs Tipo-1 (squash/thoop/biomtoy): VIDEO y SONIDO NUEVOS (chip GAE1/CG-1V).
-#   - Video: 2 tilemaps 1024x512 (16x16, 5bpp, linescroll) + 2 bancos de 512 sprites + SOMBRAS/highlights.
-#     Paleta 64K (4096 colores x 16 variantes shadow/highlight). 320x240, 59.1 Hz.
-#   - Sonido: el mismo chip GAE1 (2 canales estereo, samples en las ROMs de gfx). NO OKI/jt6295.
-#   - DS5002FP (proteccion): firmware DUMPEADO (32KB). Runtime como WRally (mc8051 + BRAM).
-# Scaffold clonado de biomtoy (infra fx68k + build); el motor Tipo-1 se REEMPLAZA por el GAE1.
-#
-# FLUJO: jtcore lee este fichero + cfg/mem.yaml y AUTO-GENERA jtaligator_game_sdram.v (GAMETOP).
 CORENAME=JTALIGATOR
 GAMETOP=jtaligator_game_sdram
 
-# Pantalla: 320x240, ROT0 horizontal. Paleta xRRRRRGGGGGBBBBB = 5 bits/canal. Refresh 59.1 Hz (gaelco2).
 JTFRAME_WIDTH=320
 JTFRAME_HEIGHT=240
 JTFRAME_COLORW=5
 
-# pxl_cen/pxl2_cen son SALIDAS del game (hdl/jtaligator_game.v). Refresco 59.1 Hz en el timing de video.
-
-# Botones: 3 (joystick 8-way + 3 botones por jugador) -> alighunt INPUT_PORTS (BUTTON1/2/3).
 JTFRAME_BUTTONS=3
 
-# Reloj: game a 48MHz (clk48), SDRAM a 96MHz (SDRAM96) = camino HW-probado. 68000 a 12MHz = clk48/4.
 JTFRAME_CLK48
 JTFRAME_SDRAM96
-# gfx = 16MB (4 planos DW32) + prog 1MB + firmware -> >16MB -> SDRAM de 32MB (SDRAMW=24).
+
 JTFRAME_SDRAM_LARGE
 
-# Sonido GAE1 = 2 canales ESTÉREO -> snd_left/snd_right.
 JTFRAME_STEREO
 
-# Reparto de la .mra (direccion de BYTE en el stream de descarga):
-#   ba0 = prog 68000  1MB  @0           (u45 par 512K + u44 impar 512K -> 0x100000 exacto, simetrico)
-#   ba1 = gfx 16MB @0x100000            (4 planos REALES de 4MB c/u, de u47-u50 split even/odd; plano5=0 en RTL)
-#   firmware DS5002 (32KB) @0x1100000   -> a BRAM en runtime (camino WRally; fase DS5002, no banco SDRAM)
-# (SIN OKI: el sonido lo hace el GAE1 leyendo de las ROMs de gfx.)
 JTFRAME_BA1_START=0x100000
 
-# Firmware DS5002FP (32KB) en la .mra @0x1100000 (tras gfx 16MB) -> BRAM via mecanismo PROM.
 JTFRAME_PROM_START=0x1100000
+
+CRT_ADJUST
+
+CRT_ADJUST_HTOTAL=512
+CRT_ADJUST_VTOTAL=264
+
+CRT_ADJUST_RDBASE=24
+
+CRT_ADJUST_SYNCSHIFT
+
+HPOS_SYNCSHIFT=0
+HPOS_CONTENTSHIFT=1
 
 [mister]
 JTFRAME_ARX=4
 JTFRAME_ARY=3
-# Quitar el LOGO JT del fondo del menu OSD (macro oficial jtframe). Core INDEPENDIENTE.
+
 JTFRAME_OSD_NOLOGO

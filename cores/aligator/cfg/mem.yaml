@@ -1,46 +1,18 @@
-# cfg/mem.yaml — subsistema de memoria del core JTALIGATOR (Alligator Hunt, Gaelco 1994, hw Tipo-2 gaelco2.cpp).
-#
-# jtcore (memgen) genera jtaligator_game_sdram.v (GAMETOP): slots SDRAM por banco/bus + jtframe_dwnld.
-# Conecta hdl/jtaligator_game.v por NOMBRE de bus.
-#
-# Chip GAE1/CG-1V: 2 tilemaps 1024x512 (16x16, 5bpp, linescroll) + 2 bancos de 512 sprites + sonido.
-# VRAM (64KB) / paleta (64K entradas con sombras) van DENTRO de jtaligator_game (aligator_vmem, BRAM) -> NO aqui.
-# DS5002FP: firmware (32KB) -> BRAM cargada en runtime desde la .mra (camino WRally), NO banco SDRAM.
-#
-# Mapa 68000 (gaelco2.cpp alighunt_map):
-#   0x000000-0x0fffff R   ROM 1MB                         -> bank0 'main' (DW16; u45 par + u44 impar)
-#   0x200000-0x20ffff RW  VRAM 64KB (sprites+tilemaps+linescroll+scroll+sound regs)  -> BRAM en el game
-#   0x202890-0x2028ff RW  sound registers (GAE1)
-#   0x210000-0x211fff RW  paleta 8KB (xRRRRRGGGGGBBBBB)   -> BRAM (64K con variantes shadow/highlight)
-#   0x218004-0x218009 W   video registers (vregs)
-#   0x300000/2        R   IN0(DSW1+P1) / IN1(DSW2+P2)
-#   0x320000          R   COIN + SERVICE
-#   0x500000          W   coin lockout/counters
-#   0xfe0000-0xfe7fff RW  work RAM 32KB
-#   0xfe8000-0xfeffff RW  work RAM COMPARTIDA con DS5002 (32KB) (= ventana MCU 0x8000-0xffff)
-
 sdram:
   banks:
-    # Bank 0: programa del 68000 (1MB, 16-bit). u45 (par) + u44 (impar), simetrico. Bus 'main'.
+
     - buses:
         - { name: main, addr_width: 20, data_width: 16 }
 
-    # Bank 1: graficos (16MB, 5bpp planar pero plano bit4=0 -> 4 planos REALES DW32, plano5=0 en RTL).
-    #   Planos 4MB c/u (de u47-u50, split even/odd por init_alighunt). 1 lectura DW32 = {p3,p2,p1,p0}.
-    #   16MB -> addr_width=24 ; element index = addr[23:2] = 22 bits (4M elementos).
-    #   Clientes: gfx0=tilemap0, gfx1=tilemap1, gfxs=sprites (mismo esquema que Tipo-1, 3 lectores).
-    #   (El SONIDO GAE1 tambien lee samples de estas ROMs -> se añadira un cliente 'snd' en su fase.)
     - buses:
         - { name: gfx0, addr_width: 24, data_width: 32 }
         - { name: gfx1, addr_width: 24, data_width: 32 }
         - { name: gfxs, addr_width: 24, data_width: 32 }
-        # sonido GAE1: lee bytes de samples de las MISMAS ROMs de gfx (elemento DW32, byte=banco)
+
         - { name: snd,  addr_width: 24, data_width: 32 }
 
 bram:
-  # Firmware del DS5002FP (aligator_ds5002fp_sram.bin, 32KB). Cargado por el mecanismo PROM de
-  # jtframe (JTFRAME_PROM_START en macros.def). El game lee dallas_addr -> dallas_data (registrada).
-  # El cen-gate del MCU (handshake DS5002) se hace en aligator_mcu sobre dallas_data. (Camino WRally.)
+
   - name: dallas
     addr_width: 15
     data_width: 8

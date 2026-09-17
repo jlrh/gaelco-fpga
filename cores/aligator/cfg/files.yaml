@@ -1,44 +1,29 @@
-# cfg/files.yaml — fuentes del core JTALIGATOR (Alligator Hunt, Gaelco 1994, Tipo-2 gaelco2.cpp).
-# jtframe mergea esto con los ficheros del framework (board/sdram/dwnld/slots) y del target.
-# HDL en cores/aligator/hdl/.
-#
-# FASE "BUS gaelco2": se construye SOLO la capa CPU/bus (mapa gaelco2, VRAM plana, vregs, I/O,
-# RAM compartida DS5002) + un STUB de vídeo (solo timing). El MOTOR GAE1 (2 tilemaps 5bpp +
-# linescroll + sprites + sombras), el SONIDO GAE1 y el DS5002 son fases posteriores; sus
-# ficheros (los Tipo-1 clonados, jt6295, cifrado) quedan EN DISCO pero FUERA del build hasta
-# adaptarlos/reemplazarlos por el motor GAE1.
 aligator:
   - get:
-    # --- game (contrato jtframe) ---
+
     - jtaligator_game.v
-    # --- CPU / placa (mapa gaelco2) ---
+
     - aligator_main.v
     - aligator_addr_decode.v
     - aligator_inputs.v
-    - aligator_vmem.v           # VRAM 64KB (paridad de word, sirve par de tile) + paleta 8KB
-    # --- video GAE1 (gaelco2_v.cpp), STEP A = tilemaps ---
-    - aligator_video_timing.v   # timing H/V + vblank_irq
-    - aligator_video_top.v      # timing + compositor + paleta -> RGB
-    - aligator_gae1_video.v     # compositor 2 tilemaps (prioridad fija tm0>tm1) + scroll
-    - aligator_gae1_tilemap.v   # tilemap 64x32 de 16x16 5bpp, fetch-por-pixel
-    - aligator_gae1_sprite.v    # motor de sprites por línea (indirección + tamaños + sombras RMW)
-    - aligator_gae1_palette.v   # RGB555 + ajuste shadow/highlight
-    - aligator_gae1_sound.v     # sonido GAE1: 7 canales estéreo, samples en las ROMs de gfx (volume_table.mem)
-    # --- 68000 (fx68k, ijor, GPLv3); microrom/nanorom.mem en hdl/ ---
+    - aligator_vmem.v
+
+    - aligator_video_timing.v
+    - aligator_video_top.v
+    - aligator_gae1_video.v
+    - aligator_gae1_tilemap.v
+    - aligator_gae1_sprite.v
+    - aligator_gae1_palette.v
+    - aligator_gae1_sound.v
+
     - fx68k.sv
     - fx68kAlu.sv
     - uaddrPla.sv
-    # --- DTACK + cens del 68000 (copia local, sin freqinfo) ---
+
     - aligator_68kdtack.v
-    # --- DS5002FP (mc8051 Oregano/jtframe, COMPLETO; mismo camino que WRally) ---
-    - aligator_mcu.v     # wrapper: IRAM/SFR internos; ROM (firmware) + xdata (MOVX) externos
-    - mc8051_regen.v     # core mc8051 (VHDL->Verilog via ghdl)
-    - jtframe_ram_rst.v  # IRAM 256B del wrapper
-    # === FUERA DEL BUILD (fase GAE1/sonido/DS5002) — se reintroducen al adaptarlos ===
-    # Tipo-1 clonado (base para el motor GAE1):
-    #   - aligator_video_top.v / aligator_video.v / aligator_tilemap.v / aligator_palette.v
-    #   - aligator_gfx_decode.v / aligator_sprite_layer.v / aligator_sprite_engine.v
-    # Sonido OKI Tipo-1 (gaelco2 usa el GAE1, NO OKI):
-    #   - aligator_oki.v / aligator_iolatch.v / jt6295*.v
-    # Cifrado VRAM Tipo-1 (gaelco2 NO cifra):
-    #   - aligator_vram_decrypt.v
+
+    - aligator_mcu.v
+    - mc8051_regen.v
+    - jtframe_ram_rst.v
+
+    - aligator_clk48_96.sdc

@@ -1,13 +1,3 @@
-<!-- Alligator Hunt (Gaelco, 1994) — set 'aligator' (World, PROTEGIDO DS5002FP). JTALIGATOR (jtframe),
-     hw Tipo-2 gaelco2.cpp / chip GAE1. V.001 — primer ensamblaje de la .mra.
-     Layout SDRAM (cfg/macros.def):
-       ba0 = prog 68000 1MB @0           (1.u45 par/ALTO map=10 + 2.u44 impar/BAJO map=01, simétrico)
-       ba1 = gfx 16MB @0x100000          (init_alighunt: bloque1 interleave(u48,u50) + bloque2 (u47,u49))
-       firmware DS5002 32KB @0x1100000   (PROM, JTFRAME_PROM_START) -> BRAM dallas en runtime
-     gfx (gaelco2_m.cpp init_alighunt + DW32 del FPGA): por elemento {p0,p1,p2,p3} =
-       i<2M: {u48[2i],u48[2i+1],u50[2i],u50[2i+1]} ; i>=2M: {u47[2j],u47[2j+1],u49[2j],u49[2j+1]}.
-     Validado con mra2rom real vs el blob golden de aligator_sim_prep.py.
--->
 <misterromdescription>
     <rbf>ffaligator</rbf>
     <name>Alligator Hunt (FF, Gaelco, 1994)</name>
@@ -20,31 +10,28 @@
     <region>World</region>
 
     <rom index="0" zip="aligator.zip" type="merged" md5="none">
-        <!-- 0x000000: prog 68000 (1MB). u45=byte par(ALTO) map=10, u44=byte impar(BAJO) map=01. Simétrico. -->
+
         <interleave output="16">
             <part name="1.u45" crc="61c47c56" map="10"/>
             <part name="2.u44" crc="96bc77c2" map="01"/>
         </interleave>
-        <!-- 0x100000: gfx 16MB. DW32 {p0,p1,p2,p3} por elemento (init_alighunt). -->
-        <!--   bloque1 (8MB): {u48[2i],u48[2i+1],u50[2i],u50[2i+1]} -->
+
         <interleave output="32">
             <part name="u48" crc="19e03bf1" map="0012"/>
             <part name="u50" crc="85daecf9" map="1200"/>
         </interleave>
-        <!--   bloque2 (8MB): {u47[2j],u47[2j+1],u49[2j],u49[2j+1]} -->
+
         <interleave output="32">
             <part name="u47" crc="74a5a29f" map="0012"/>
             <part name="u49" crc="70a4ee0b" map="1200"/>
         </interleave>
-        <!-- 0x1100000: firmware DS5002FP (32KB) -> BRAM 'dallas' via mecanismo PROM -->
+
         <part name="aligator_ds5002fp_sram.bin" crc="6558f215"/>
     </rom>
 
-    <!-- DIP switches (gaelco2.cpp alighunt) — placeholder por defecto; refinar tras validar el arranque. -->
     <switches default="ff,ff" base="16">
         <dip name="Service Mode" bits="15" ids="On,Off"/>
     </switches>
 
-    <!-- Mapeo: Start del JUEGO en el botón Start físico; Pause con su PROPIA tecla (Y), no encima de Start. -->
     <buttons names="Fire,Jump,Button 3,Start,Coin,Pause" default="A,B,X,Start,Select,Y" count="3"/>
 </misterromdescription>
