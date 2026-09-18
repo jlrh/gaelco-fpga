@@ -1,5 +1,5 @@
---- /c/_PROYECTOS/Gaelco/jt_ref/jtcores/modules/jtframe/target/mister/hdl/jtframe_mister.sv	2026-07-28 20:54:15.865332100 +0200
-+++ /c/_PROYECTOS/fpga-wrally/jtroot/modules/jtframe/target/mister/hdl/jtframe_mister.sv	2026-09-17 15:19:36.057654700 +0200
+--- /c/_PROYECTOS/Gaelco/jt_ref/jtcores/modules/jtframe/target/mister/hdl/jtframe_mister.sv	2026-09-18 11:03:59.141459300 +0200
++++ jtroot/modules/jtframe/target/mister/hdl/jtframe_mister.sv	2026-09-18 15:35:16.648982100 +0200
 @@ -663,7 +663,19 @@
      assign hsize_b  = game_b;
  `endif
@@ -43,7 +43,7 @@
  end endgenerate
  
  // status[64]    : crt_en           (On/Off, 0 = passthrough del modulo)
-@@ -748,12 +762,20 @@
+@@ -768,12 +782,20 @@
  
  // Misma entrada que hoy consume u_arcade_video (base_r/g/b + ~base_lhbl/lvbl
  // + hsize_hs/vs), para no adivinar latencias internas de jtframe_board.
