@@ -3,9 +3,9 @@
 module aligator_video_timing #(
 
     parameter HVIS = 320,
-    parameter HFP  = 24,
-    parameter HSW  = 48,
-    parameter HBP  = 120,
+    parameter HFP  = 8,
+    parameter HSW  = 28,
+    parameter HBP  = 28,
 
     parameter VVIS = 240,
     parameter VFP  = 10,

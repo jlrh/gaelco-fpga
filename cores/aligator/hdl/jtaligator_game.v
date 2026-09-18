@@ -12,9 +12,9 @@ module jtaligator_game(
     wire clkg = clk48;
 
     reg [2:0] pxdiv = 3'd0;
-    always @(posedge clkg) pxdiv <= (pxdiv==3'd5) ? 3'd0 : pxdiv + 3'd1;
+    always @(posedge clkg) pxdiv <= (pxdiv==3'd7) ? 3'd0 : pxdiv + 3'd1;
     assign pxl_cen  = (pxdiv==3'd0);
-    assign pxl2_cen = (pxdiv==3'd0) || (pxdiv==3'd3);
+    assign pxl2_cen = (pxdiv==3'd0) || (pxdiv==3'd4);
     wire ce_pix = (pxdiv==3'd0);
 
     reg [1:0] mcudiv = 2'd0;

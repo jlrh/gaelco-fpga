@@ -564,7 +564,6 @@ hacen falta estas piezas, que se distribuyen desde su propio origen:
 | mc8051 — DS5002FP (coprocesador de proteccion): core mc8051 de Oregano Systems, distribuido dentro de jtframe. cores/aligator/hdl/mc8051_regen.v es su regeneracion VHDL->Verilog (ghdl) vendorizada localmente. | [https://github.com/jotego/jtframe](https://github.com/jotego/jtframe) | `modules/jtframe/hdl/cpu/8051` |
 | crt_adjust (rmonic79) — Ajuste de geometria CRT de terceros (H-Size/H-Position/V-Shift), NO es funcionalidad de jtframe -- vendorizado sin modificar dentro de jtframe, activado por cfg/macros.def (CRT_ADJUST). COLORW=5 coincide con el piloto Asterix, sin parche adicional. | [https://github.com/rmonic79/MiSTer-CRT-Adjust](https://github.com/rmonic79/MiSTer-CRT-Adjust) | `modules/jtframe/hdl/video/rmonic79` |
 <!-- /omf_release:dependencias:ffaligator -->
-
 <!-- omf_release:dependencias:ffbiomtoy -->
 ## Dependencias externas de `ffbiomtoy`
 
