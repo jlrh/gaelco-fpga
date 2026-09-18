@@ -552,7 +552,6 @@ hacen falta estas piezas, que se distribuyen desde su propio origen:
 | jt6295 — OKI MSM6295 (sonido ADPCM) | [https://github.com/jotego/jt6295](https://github.com/jotego/jt6295) | `modules/jt6295` |
 | crt_adjust (rmonic79) — Ajuste de geometria CRT de terceros (H-Size/H-Position/V-Shift), NO es funcionalidad de jtframe -- vendorizado sin modificar dentro de jtframe, activado por cfg/macros.def (CRT_ADJUST, CRT_ADJUST_HTOTAL=384/VTOTAL=272/RDBASE=64). | [https://github.com/rmonic79/MiSTer-CRT-Adjust](https://github.com/rmonic79/MiSTer-CRT-Adjust) | `modules/jtframe/hdl/video/rmonic79` |
 <!-- /omf_release:dependencias:ffsquash -->
-
 <!-- omf_release:dependencias:ffaligator -->
 ## Dependencias externas de `ffaligator`
 
