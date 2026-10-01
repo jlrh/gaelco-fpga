@@ -1,3 +1,5 @@
+<!-- This core incorporates JTFRAME/jtcores components licensed under GNU GPLv2.
+     License text: https://opensource.org/licenses/gpl-2.0.php -->
 <misterromdescription>
     <rbf>ffthoop</rbf>
     <name>Thunder Hoop (FF, Gaelco, 1992)</name>
@@ -8,9 +10,7 @@
     <buttons>2</buttons>
     <rotation>horizontal</rotation>
     <region>World</region>
-
     <rom index="0" zip="thoop.zip" type="merged" md5="none">
-
         <interleave output="16">
             <part name="th18dea1.040" crc="59bad625" length="0x40000" map="10"/>
             <part name="th161eb4.020" crc="6add61ed" map="01"/>
@@ -19,17 +19,14 @@
             <part name="th18dea1.040" crc="59bad625" offset="0x40000" length="0x40000" map="10"/>
             <part name="th161eb4.020" crc="6add61ed" map="01"/>
         </interleave>
-
         <interleave output="32">
             <part name="c12" crc="29a5ca36" map="0001"/>
             <part name="c11" crc="7403ef7e" map="0010"/>
             <part name="c10" crc="2d227085" map="0100"/>
             <part name="c09" crc="06f0edbf" map="1000"/>
         </interleave>
-
         <part name="sound" crc="99f80961"/>
     </rom>
-
     <switches default="ff,ff" base="16">
         <dip name="Coin A" bits="0,3" ids="4C/1C,3C/1C,2C/1C,1C/1C,1C/2C,1C/3C,1C/4C,1C/6C"/>
         <dip name="Coin B" bits="4,7" ids="4C/1C,3C/1C,2C/1C,1C/1C,1C/2C,1C/3C,1C/4C,1C/6C"/>
@@ -40,6 +37,5 @@
         <dip name="Cabinet" bits="14" ids="Cocktail,Upright"/>
         <dip name="Service Mode" bits="15" ids="On,Off"/>
     </switches>
-
     <buttons names="Button 1,Button 2,Start,Coin,Pause" default="A,B,R,Select,Start" count="2"/>
 </misterromdescription>

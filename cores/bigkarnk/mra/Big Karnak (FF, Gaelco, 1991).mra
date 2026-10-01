@@ -1,3 +1,5 @@
+<!-- This core incorporates JTFRAME/jtcores components licensed under GNU GPLv2.
+     License text: https://opensource.org/licenses/gpl-2.0.php -->
 <misterromdescription>
     <rbf>ffbigkarnk</rbf>
     <name>Big Karnak (FF, Gaelco, 1991)</name>
@@ -8,37 +10,28 @@
     <buttons>2</buttons>
     <rotation>horizontal</rotation>
     <region>World</region>
-
     <rom index="0" zip="bigkarnk.zip" type="merged" md5="none">
-
         <interleave output="16">
             <part name="d16" crc="44fb9c73" map="10"/>
             <part name="d19" crc="ff79dfdd" map="01"/>
         </interleave>
-
         <interleave output="32">
             <part name="h5"  crc="20e239ff" map="0010"/>
             <part name="h10" crc="ab442855" map="0001"/>
             <part name="h8"  crc="83dce5a3" map="1000"/>
             <part name="h6"  crc="24e84b24" map="0100"/>
         </interleave>
-
         <part name="d1" crc="26444ad1"/>
-
         <part name="d5" crc="3b73b9c5"/>
     </rom>
-
     <switches default="ff,ff" base="16">
-
         <dip name="Coin A" bits="0,3" ids="Free Play,1C/1C,1C/1C,1C/1C,1C/1C,1C/1C,2C/3C,4C/1C,3C/1C,2C/1C,1C/6C,1C/5C,1C/4C,1C/3C,1C/2C,1C/1C"/>
         <dip name="Coin B" bits="4,7" ids="Free Play,1C/1C,1C/1C,1C/1C,1C/1C,1C/1C,2C/3C,4C/1C,3C/1C,2C/1C,1C/6C,1C/5C,1C/4C,1C/3C,1C/2C,1C/1C"/>
-
         <dip name="Difficulty" bits="8,10" ids="7,6,5,4,3,2,1,0"/>
         <dip name="Lives" bits="11,12" ids="4,3,2,1"/>
         <dip name="Demo Sounds" bits="13" ids="On,Off"/>
         <dip name="Impact" bits="14" ids="Off,On"/>
         <dip name="Service Mode" bits="15" ids="On,Off"/>
     </switches>
-
     <buttons names="Shot,Jump,Start,Coin,Pause" default="A,B,R,Select,Start" count="2"/>
 </misterromdescription>

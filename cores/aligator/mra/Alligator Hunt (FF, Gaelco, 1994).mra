@@ -1,3 +1,5 @@
+<!-- This core incorporates JTFRAME/jtcores components licensed under GNU GPLv2.
+     License text: https://opensource.org/licenses/gpl-2.0.php -->
 <misterromdescription>
     <rbf>ffaligator</rbf>
     <name>Alligator Hunt (FF, Gaelco, 1994)</name>
@@ -8,30 +10,23 @@
     <buttons>3</buttons>
     <rotation>horizontal</rotation>
     <region>World</region>
-
     <rom index="0" zip="aligator.zip" type="merged" md5="none">
-
         <interleave output="16">
             <part name="1.u45" crc="61c47c56" map="10"/>
             <part name="2.u44" crc="96bc77c2" map="01"/>
         </interleave>
-
         <interleave output="32">
             <part name="u48" crc="19e03bf1" map="0012"/>
             <part name="u50" crc="85daecf9" map="1200"/>
         </interleave>
-
         <interleave output="32">
             <part name="u47" crc="74a5a29f" map="0012"/>
             <part name="u49" crc="70a4ee0b" map="1200"/>
         </interleave>
-
         <part name="aligator_ds5002fp_sram.bin" crc="6558f215"/>
     </rom>
-
     <switches default="ff,ff" base="16">
         <dip name="Service Mode" bits="15" ids="On,Off"/>
     </switches>
-
     <buttons names="Fire,Jump,Button 3,Start,Coin,Pause" default="A,B,X,Start,Select,Y" count="3"/>
 </misterromdescription>

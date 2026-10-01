@@ -1,3 +1,5 @@
+<!-- This core incorporates JTFRAME/jtcores components licensed under GNU GPLv2.
+     License text: https://opensource.org/licenses/gpl-2.0.php -->
 <misterromdescription>
     <rbf>ffthoop2</rbf>
     <name>TH Strikes Back (FF, Gaelco, 1994)</name>
@@ -8,24 +10,18 @@
     <buttons>3</buttons>
     <rotation>horizontal</rotation>
     <region>World</region>
-
     <rom index="0" zip="thoop2.zip" type="merged" md5="none">
-
         <interleave output="16">
             <part name="3.c23" crc="6cd4a8dc" map="10"/>
             <part name="2.c22" crc="59ba9b43" map="01"/>
         </interleave>
-
         <interleave output="32">
             <part name="th2-h8.h8"  crc="60328a11" map="0012"/>
             <part name="th2-h12.h12" crc="b25c2d3e" map="1200"/>
         </interleave>
-
         <part name="th2-c1.c1" crc="8fac8c30"/>
-
         <part name="thoop2_ds5002fp.bin" crc="6881384d"/>
     </rom>
-
     <switches default="ff,ff" base="16">
         <dip name="Coin B" bits="0,2" ids="6C/1C,5C/1C,4C/1C,3C/1C,2C/1C,3C/2C,4C/3C,1C/1C"/>
         <dip name="Coin A" bits="3,5" ids="3C/4C,2C/3C,1C/6C,1C/5C,1C/4C,1C/3C,1C/2C,1C/1C"/>
@@ -36,6 +32,5 @@
         <dip name="Demo Sounds" bits="13" ids="Off,On"/>
         <dip name="Service Mode" bits="15" ids="On,Off"/>
     </switches>
-
     <buttons names="Button 1,Button 2,Button 3,Start,Coin,Pause" default="A,B,X,R,Select,Start" count="3"/>
 </misterromdescription>

@@ -1,3 +1,5 @@
+<!-- This core incorporates JTFRAME/jtcores components licensed under GNU GPLv2.
+     License text: https://opensource.org/licenses/gpl-2.0.php -->
 <misterromdescription>
     <rbf>ffglass</rbf>
     <name>Glass (FF, Gaelco, 1993)</name>
@@ -8,28 +10,20 @@
     <buttons>2</buttons>
     <rotation>horizontal</rotation>
     <region>World</region>
-
     <rom index="0" zip="glass.zip" type="merged" md5="none">
-
         <interleave output="16">
             <part name="1.c23" crc="aeebd4ed" map="10"/>
             <part name="2.c22" crc="165e2e01" map="01"/>
         </interleave>
-
         <part repeat="524288"> 00 </part>
-
         <interleave output="32">
             <part name="h13.bin" crc="13ab7f31" map="1200"/>
             <part name="h11.bin" crc="c6ac41c8" map="0012"/>
         </interleave>
-
         <part name="c1.bin" crc="d9f075a2"/>
-
         <part name="h9.bin" crc="b9492557"/>
-
         <part name="glass_ds5002fp_sram.bin" crc="47c9df4c"/>
     </rom>
-
     <switches default="ff,ff" base="16">
         <dip name="Coin A" bits="0,2" ids="3C/4C,2C/3C,1C/6C,1C/5C,1C/4C,1C/3C,1C/2C,1C/1C"/>
         <dip name="Coin B" bits="3,5" ids="6C/1C,5C/1C,4C/1C,3C/1C,2C/1C,3C/2C,4C/3C,1C/1C"/>
@@ -41,6 +35,5 @@
         <dip name="Demo Sounds" bits="13" ids="Off,On"/>
         <dip name="Service Mode" bits="15" ids="On,Off"/>
     </switches>
-
     <buttons names="Button 1,Button 2,Start,Coin,Pause" default="A,B,Start,Select,R" count="2"/>
 </misterromdescription>

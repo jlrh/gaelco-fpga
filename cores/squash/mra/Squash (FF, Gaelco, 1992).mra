@@ -1,3 +1,5 @@
+<!-- This core incorporates JTFRAME/jtcores components licensed under GNU GPLv2.
+     License text: https://opensource.org/licenses/gpl-2.0.php -->
 <misterromdescription>
     <rbf>ffsquash</rbf>
     <name>Squash (FF, Gaelco, 1992)</name>
@@ -8,26 +10,20 @@
     <buttons>2</buttons>
     <rotation>horizontal</rotation>
     <region>World</region>
-
     <rom index="0" zip="squash.zip" type="merged" md5="none">
-
         <interleave output="16">
             <part name="squash.d18" crc="ce7aae96" map="10"/>
             <part name="squash.d16" crc="8ffaedd7" map="01"/>
         </interleave>
-
         <part repeat="0xC0000">00</part>
-
         <interleave output="32">
             <part name="squash.c12" crc="5c440645" map="0010"/>
             <part name="squash.c11" crc="9e19694d" map="0001"/>
             <part name="squash.c10" crc="892a035c" map="1000"/>
             <part name="squash.c09" crc="0bb91c69" map="0100"/>
         </interleave>
-
         <part name="squash.d01" crc="a1b9651b"/>
     </rom>
-
     <switches default="ff,ff" base="16">
         <dip name="Coin A" bits="0,3" ids="4C/1C,3C/1C,2C/1C,1C/1C,1C/2C,1C/3C,1C/4C,1C/6C"/>
         <dip name="Coin B" bits="4,7" ids="4C/1C,3C/1C,2C/1C,1C/1C,1C/2C,1C/3C,1C/4C,1C/6C"/>
@@ -37,6 +33,5 @@
         <dip name="Demo Sounds" bits="14" ids="On,Off"/>
         <dip name="Service Mode" bits="15" ids="On,Off"/>
     </switches>
-
     <buttons names="Button 1,Button 2,Start,Coin,Pause" default="A,B,R,Select,Start" count="2"/>
 </misterromdescription>
