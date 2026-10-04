@@ -10,7 +10,7 @@ Steps to rebuild the `.rbf` from scratch, including the step that makes the bits
   as modules) and its toolchain (`setprj.sh`, `jtcore`).
 - **Quartus** (the version your MiSTer board needs).
 - **Python 3** (for the patch step).
-- Your World Rally **ROMs** (not included) — see [`README.md`](README.md).
+- Your World Rally **ROMs** (not included) — see [`DETAILS.md`](DETAILS.md).
 
 ## Steps
 
@@ -105,7 +105,7 @@ Pasos para reconstruir el `.rbf` desde cero, incluido el paso que hace el bitstr
   como módulos) y su toolchain (`setprj.sh`, `jtcore`).
 - **Quartus** (la versión que pida tu placa MiSTer).
 - **Python 3** (para el paso del parche).
-- Tus **ROMs** de World Rally (no se incluyen) — ver [`README.md`](README.md).
+- Tus **ROMs** de World Rally (no se incluyen) — ver [`DETAILS.md`](DETAILS.md).
 
 ## Pasos
 
