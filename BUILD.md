@@ -61,32 +61,36 @@ To simulate (Verilator) the step-3 patch is **not** needed: the global template 
   loaded at runtime.) The game **ROMs** are provided by each user.
 
 ## World Rally 2 (`cores/wrally2/`)
-World Rally 2 builds like any jtframe core but has two differences from World Rally / Alligator:
+World Rally 2 builds like any jtframe core, with three differences:
 
 1. **No DS5002 address patch is needed.** The core is `SDRAM_LARGE` (24-bit addressing), so the firmware
-   at `0x1100000` in the `.mra` loads at runtime via the standard PROM path — the `.rbf` is distributable
-   as-is (firmware not baked). Nothing to patch for the DS5002.
+   in the `.mra` loads at runtime via the standard PROM path — the `.rbf` is distributable as-is.
 
-2. **Two build knobs** for the shipped V010 behaviour:
-   - **13/13 MHz CPU/MCU** — export `WR2_CEN_FRAC=1` before compiling. This defines the Verilog macro
-     (MCU → fractional 13/48 cen) and the SDC reads the same env var to set the mc8051 multicycle. Without
-     it the MCU runs at 12 MHz (still works, but not board-faithful).
-   - **8:3 aspect in Twin** — apply the jtframe patch (a shared framework file, so it is a patch script,
-     like World Rally's DS5002 patch):
-     ```
-     python3 cores/wrally2/tools/patch_twin_arx.py \
-         <jtcores>/modules/jtframe/target/mister/hdl/jtframe_mister.sv
-     ```
-     This makes the OSD "Original" aspect resolve to 8:3 in Twin (and 4:3 in single) automatically, gated
-     by the `JTFRAME_TWIN_ARX` macro that `cfg/macros.def` already defines. Idempotent; other cores are
-     unaffected (they take the `else`). Without it, Twin needs `custom_aspect_ratio_1=8:3` in `MiSTer.ini`.
+2. **jtframe needs two patches** (shared framework files, so they ship as a script and a patch). From the
+   root of a [jtcores](https://github.com/jotego/jtcores) checkout (tested base: `8b626a5`) with this
+   repo's `cores/wrally2/` copied into `cores/wrally2/`:
+   ```
+   python3 cores/wrally2/tools/patch_twin_arx.py modules/jtframe/target/mister/hdl/jtframe_mister.sv
+   patch -p1 < cores/wrally2/patches/jtframe_wrally2.patch
+   ```
+   `patch_twin_arx.py` makes the OSD "Original" aspect resolve to 8:3 in Twin. `jtframe_wrally2.patch`
+   adds the Twin HDMI+VGA output, the DS5002 PROM clock and the SDRAM cache fix — see
+   [`cores/wrally2/patches/README.md`](cores/wrally2/patches/README.md).
 
-   Then compile, e.g. `WR2_CEN_FRAC=1 jtcore wrally2 -mister -c`.
+3. **Build macros of the release** (not in `cfg/macros.def`, passed on the command line):
+   ```
+   jtcore wrally2 -t mister -d JTFRAME_TWIN_FB -d MISTER_FB -d WRALLY2_VRAM_SHARE -d JTFRAME_NOHQ2X -d WRALLY2_DUAL_SPR
+   ```
+   Before Quartus runs, add these two lines at the **end** of the generated `.qsf`:
+   ```
+   set_global_assignment -name ALLOW_POWER_UP_DONT_CARE OFF
+   set_global_assignment -name SDC_FILE <path>/cores/wrally2/syn/wrally2_clk48_96.sdc
+   ```
+   The `.sdc` is already in the project, but Quartus reads it before `sys_top.sdc` creates the PLL clocks,
+   so its clk48↔clk96 multicycles are ignored unless it is read again at the end.
 
-**gfx blob:** World Rally 2's gfx is shipped as a single 16 MB blob (in a separate `wrally2_gfx.zip`
-referenced by the `.mra`), because the GAE1 reads sound samples from the same gfx banks by byte-lane and
-the addresses can't be cleanly split. Build it from your own original ROMs — see the `.mra` and the
-project's gfx-blob tool. **No ROMs, firmware or blobs are in this repo.**
+**ROMs:** the `.mra` builds the gfx banks from the standard merged `wrally2.zip`. **No ROMs or firmware are
+in this repo.**
 
 **Default screen mode:** do **not** distribute a `config/wrally2.CFG`. With no CFG the core boots at its
 factory default (Monitor = Left, single 4:3, Aspect = Original, Scale = Normal) — playable from boot.
@@ -155,32 +159,37 @@ con `SIMFILE` y carga `wrdallas.bin` por `$readmemh`.
   cargado por runtime.) Las **ROMs** del juego las aporta cada usuario.
 
 ## World Rally 2 (`cores/wrally2/`)
-World Rally 2 se compila como cualquier core jtframe, con dos diferencias respecto a World Rally / Alligator:
+World Rally 2 se compila como cualquier core jtframe, con tres diferencias:
 
 1. **No hace falta parche de dirección del DS5002.** El core es `SDRAM_LARGE` (direccionamiento de 24 bits),
-   así que el firmware en `0x1100000` del `.mra` carga en runtime por el camino PROM estándar — el `.rbf` es
-   distribuible tal cual (firmware no horneado). Nada que parchear para el DS5002.
+   así que el firmware del `.mra` carga en runtime por el camino PROM estándar — el `.rbf` es distribuible
+   tal cual.
 
-2. **Dos ajustes de build** para el comportamiento de la V010 publicada:
-   - **CPU/MCU a 13/13 MHz** — exporta `WR2_CEN_FRAC=1` antes de compilar. Define el macro Verilog
-     (MCU → cen fraccional 13/48) y el SDC lee la misma env var para el multicycle del mc8051. Sin él el
-     MCU va a 12 MHz (funciona, pero no es fiel a la placa).
-   - **Aspecto 8:3 en Twin** — aplica el parche de jtframe (fichero compartido del framework, por eso es un
-     script de parche, como el del DS5002 de World Rally):
-     ```
-     python3 cores/wrally2/tools/patch_twin_arx.py \
-         <jtcores>/modules/jtframe/target/mister/hdl/jtframe_mister.sv
-     ```
-     Hace que el aspecto "Original" del OSD salga a 8:3 en Twin (y 4:3 en individual) automáticamente,
-     gateado por el macro `JTFRAME_TWIN_ARX` que `cfg/macros.def` ya define. Idempotente; no afecta a otros
-     cores (van por el `else`). Sin él, el Twin necesita `custom_aspect_ratio_1=8:3` en `MiSTer.ini`.
+2. **jtframe necesita dos parches** (son ficheros compartidos del framework, por eso van como script y
+   parche). Desde la raíz de un clon de [jtcores](https://github.com/jotego/jtcores) (base probada:
+   `8b626a5`) con el `cores/wrally2/` de este repo copiado en `cores/wrally2/`:
+   ```
+   python3 cores/wrally2/tools/patch_twin_arx.py modules/jtframe/target/mister/hdl/jtframe_mister.sv
+   patch -p1 < cores/wrally2/patches/jtframe_wrally2.patch
+   ```
+   `patch_twin_arx.py` hace que el aspecto "Original" del OSD salga a 8:3 en Twin. `jtframe_wrally2.patch`
+   añade la salida Twin HDMI+VGA, el reloj de la PROM del DS5002 y el arreglo de la caché de SDRAM — ver
+   [`cores/wrally2/patches/README.md`](cores/wrally2/patches/README.md).
 
-   Luego compila, p.ej. `WR2_CEN_FRAC=1 jtcore wrally2 -mister -c`.
+3. **Macros de la release** (no están en `cfg/macros.def`, van en la línea de órdenes):
+   ```
+   jtcore wrally2 -t mister -d JTFRAME_TWIN_FB -d MISTER_FB -d WRALLY2_VRAM_SHARE -d JTFRAME_NOHQ2X -d WRALLY2_DUAL_SPR
+   ```
+   Antes de que corra Quartus, añade estas dos líneas al **final** del `.qsf` generado:
+   ```
+   set_global_assignment -name ALLOW_POWER_UP_DONT_CARE OFF
+   set_global_assignment -name SDC_FILE <ruta>/cores/wrally2/syn/wrally2_clk48_96.sdc
+   ```
+   El `.sdc` ya está en el proyecto, pero Quartus lo lee antes de que `sys_top.sdc` cree los relojes de la
+   PLL y sus multicycle clk48↔clk96 se ignoran si no se vuelve a leer al final.
 
-**blob de gfx:** el gfx de World Rally 2 se distribuye como un único blob de 16 MB (en un `wrally2_gfx.zip`
-aparte referenciado por el `.mra`), porque el GAE1 lee los samples de sonido de los mismos bancos de gfx por
-byte-lane y las direcciones no se pueden separar limpiamente. Constrúyelo desde tus ROMs originales — ver el
-`.mra` y la herramienta de blob del proyecto. **No hay ROMs, firmware ni blobs en este repo.**
+**ROMs:** el `.mra` construye los bancos de gfx desde el `wrally2.zip` merged estándar. **No hay ROMs ni
+firmware en este repo.**
 
 **Modo de pantalla por defecto:** **no** distribuyas un `config/wrally2.CFG`. Sin CFG el core arranca en su
 default de fábrica (Monitor = Left, individual 4:3, Aspect = Original, Scale = Normal) — jugable desde el arranque.

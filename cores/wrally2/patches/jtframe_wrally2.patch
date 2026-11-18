@@ -1,0 +1,339 @@
+--- a/modules/jtframe/hdl/inc/game_sdram.v
++++ b/modules/jtframe/hdl/inc/game_sdram.v
+@@ -194,6 +194,19 @@
+     .dip_flip       ( dip_flip      ),
+     .dip_test       ( dip_test      ),
+     .dip_fxlevel    ( dip_fxlevel   ),
++`ifdef JTFRAME_GAME_UART
++    .uart_tx        ( uart_tx       ),
++    .uart_rx        ( uart_rx       ),
++`endif
++`ifdef JTFRAME_TWIN_FB
++    .tfb_en         ( tfb_en        ),
++    .tfb_we         ( tfb_we        ),
++    .tfb_frame      ( tfb_frame     ),
++    .tfb_x          ( tfb_x         ),
++    .tfb_y          ( tfb_y         ),
++    .tfb_rgb        ( tfb_rgb       ),
++    .tfb_vbl        ( tfb_vbl       ),
++`endif
+     // Ports declared in mem.yaml
+     {{- range .Ports}}
+     .{{.Name}}   ( {{.Name}} ),
+@@ -471,6 +484,8 @@
+     .SLOT{{$index}}_LATCH({{.}}),{{end}}{{end}}
+     {{- with .Cache_size }}
+     .CACHE{{$index}}_SIZE({{.}}),{{end}}
++    {{- if not .Rw }}
++    .SLOT{{$index}}_OKLATCH(0),{{end}}
+     .SLOT{{$index}}_AW({{ slot_addr_width . }}),
+     .SLOT{{$index}}_DW({{ printf "%2d" .Data_width}})
+ {{- end}}
+--- a/modules/jtframe/hdl/inc/jtframe_common_ports.inc
++++ b/modules/jtframe/hdl/inc/jtframe_common_ports.inc
+@@ -50,6 +50,12 @@
+     output          uart_tx,
+     input           uart_rx,
+ `endif
++`ifdef JTFRAME_TWIN_FB
++    output          tfb_en, tfb_we, tfb_frame,
++    output   [ 8:0] tfb_x, tfb_y,
++    output   [14:0] tfb_rgb,
++    input           tfb_vbl,
++`endif
+     // Debug
+ `ifdef JTFRAME_STATUS
+     input      [7:0] st_addr,
+--- a/modules/jtframe/hdl/inc/jtframe_game_instance.v
++++ b/modules/jtframe/hdl/inc/jtframe_game_instance.v
+@@ -215,6 +215,14 @@
+ `ifdef JTFRAME_GAME_UART
+     .uart_tx     ( game_tx        ),
+     .uart_rx     ( game_rx        ), `endif
++`ifdef JTFRAME_TWIN_FB
++    .tfb_en      ( tfb_en         ),
++    .tfb_we      ( tfb_we         ),
++    .tfb_frame   ( tfb_frame      ),
++    .tfb_x       ( tfb_x          ),
++    .tfb_y       ( tfb_y          ),
++    .tfb_rgb     ( tfb_rgb        ),
++    .tfb_vbl     ( FB_VBL         ), `endif
+     // sound
+ `ifndef JTFRAME_STEREO
+     .snd         ( snd_left       ),
+--- a/modules/jtframe/hdl/inc/prom_dwnld.v
++++ b/modules/jtframe/hdl/inc/prom_dwnld.v
+@@ -26,7 +26,7 @@
+     .AW({{.Addr_width}}){{ if .Simfile.Enabled }},
+     .SIMFILE("{{.Name}}.bin"){{end}}
+ ) u_prom_{{.Name}}(
+-    .clk        ( clk                ),
++    .clk        ( clk48              ),
+     .cen        ( 1'b1               ),
+     .data       ( {{ printf "%-18s" $local_subd}} ),
+     .rd_addr    ( {{ printf "%-18s" .Addr}} ),
+--- a/modules/jtframe/hdl/sdram/jtframe_romrq_bcache.v
++++ b/modules/jtframe/hdl/sdram/jtframe_romrq_bcache.v
+@@ -88,6 +88,11 @@
+ 
+ // reg [1:0] ok_sr;
+ 
++reg dst_1;
++
++reg [31:0]    cached_data0_evict;
++reg [AW-1:0]  cached_addr0_evict;
++
+ always @(posedge clk) begin
+     if( rst ) begin
+         good         <= 0;
+@@ -97,36 +129,52 @@
+         cached_addr1 <= 0;
+         cache_ok     <= 0;
+         dend         <= 0;
++        dst_1        <= 0;
+         double       <= 0;
+         hitl         <= 0;
++        cached_data0_evict <= 0;
++        cached_addr0_evict <= 0;
+     end else begin
+         hitl <= { hit1, hit0 };
+         if( clr ) good <= 0;
+         if( req ) addr_l <= addr_req;
+-        if( we ) begin
+-            if( dst | (double&~dend) ) begin
++
++        dst_1 <= we & ( dst | (double & ~dend) );
++
++        if( DOUBLE == 0 ) begin
++            if( we & dst ) begin
++                cached_data0_evict <= cached_data0;
++                cached_addr0_evict <= cached_addr0;
++                cached_data0[15:0] <= din;
++            end
++            if( dst_1 ) begin
++                cached_data1 <= cached_data0_evict;
++                cached_addr1 <= cached_addr0_evict;
++                cached_data0[31:16] <= din;
++                cached_addr0 <= addr_l;
++                good <= { good[0], 1'b1 };
++                if( !LATCH[0] ) cache_ok <= 1;
++            end else if( !we ) begin
++                cache_ok <= addr_ok && ( hit0 || hit1 );
++            end
++        end else begin
++            if( dst_1 ) begin
+                 cached_data1 <= cached_data0;
+                 cached_addr1 <= cached_addr0;
+-                cached_data0[31:16] <= din;
+-                if( double )
+-                    cached_addr0[1] <= ~cached_addr0[1];
+-                else
+-                    cached_addr0 <= addr_l;
++                cached_data0[15:0] <= din;
++                cached_addr0[1] <= ~cached_addr0[1];
+                 good <= { good[0], 1'b1 };
+                 dend <= 1;
+             end
+             if( dend ) begin
+-                cached_data0[31:16] <= din;
+-                cached_data0[15: 0] <= cached_data0[31:16];
+-                if( !LATCH[0] && !DOUBLE[0] ) cache_ok<= 1;
++                cached_data0[31:16] <= din;
+                 if( DOUBLE ) double <= ~double;
+                 dend <= 0;
++            end else if( !we ) begin
++                cache_ok <= addr_ok && ( hit0 || hit1 );
++                double   <= 0;
+             end
+         end
+-        else begin
+-            cache_ok <= addr_ok && ( hit0 || hit1 );
+-            double   <= 0;
+-        end
+     end
+ end
+ 
+@@ -162,6 +227,40 @@
+     end
+ endgenerate
+ 
++`ifdef JTFRAME_ROMRQ_BCACHE_DBG
++reg        we_dbg, dst_dbg, din_ok_dbg;
++reg [15:0] din_dbg;
++always @(posedge clk) begin
++    if( rst ) begin
++        we_dbg<=0; dst_dbg<=0; din_ok_dbg<=0; din_dbg<=0;
++    end else begin
++        we_dbg     <= we;
++        dst_dbg    <= dst;
++        din_ok_dbg <= din_ok;
++        din_dbg    <= din;
++    end
++end
++reg dbg_bc_seen;
++always @(posedge clk) begin
++    if( rst ) dbg_bc_seen <= 0;
++    else if( !dbg_bc_seen && dst_dbg ) begin
++        dbg_bc_seen <= 1;
++        $display("[bcache dbg_mirror seed] %m we=%b dst=%b din_ok=%b din=%04x",
++            we_dbg, dst_dbg, din_ok_dbg, din_dbg);
++    end
++end
++
++integer abs_cyc = 0;
++always @(posedge clk) begin
++    abs_cyc <= abs_cyc + 1;
++    if( addr_ok || req || we || dst_1 || dend ) begin
++        $display("[bcache full %0d] %m rst=%b addr=%h addr_req=%h addr_ok=%b req=%b we=%b dst=%b din_ok=%b din=%04x dst_1=%b dend=%b hit0=%b hit1=%b cached_addr0=%h cached_data0=%08x cached_data1=%08x data_ok=%b preout=%04x",
++            abs_cyc, rst, addr, addr_req, addr_ok, req, we, dst, din_ok, din, dst_1, dend, hit0, hit1,
++            cached_addr0, cached_data0, cached_data1, data_ok, preout);
++    end
++end
++`endif
++
+ `ifdef JTFRAME_SDRAM_STATS
+ jtframe_romrq_stats u_stats(
+     .clk    ( clk       ),
+--- a/modules/jtframe/target/mister/hdl/jtframe_emu.sv
++++ b/modules/jtframe/target/mister/hdl/jtframe_emu.sv
+@@ -32,6 +32,13 @@
+ `define JTFRAME_MR_DDR
+ `endif
+ 
++`ifdef JTFRAME_VERTICAL
++`define JTFRAME_FB_PORTS
++`endif
++`ifdef JTFRAME_TWIN_FB
++`define JTFRAME_FB_PORTS
++`endif
++
+ module emu
+ (
+     //Master input clock
+@@ -121,7 +130,7 @@
+     output        UART_DTR,
+     input         UART_DSR,
+ 
+-    `ifdef JTFRAME_VERTICAL
++    `ifdef JTFRAME_FB_PORTS
+     output        FB_EN,
+     output [ 4:0] FB_FORMAT,
+     output [11:0] FB_WIDTH,
+@@ -194,7 +203,11 @@
+ assign AUDIO_MIX     = 0;
+ assign BUTTONS       = 0;
+ assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
++`ifndef JTFRAME_UART
+ assign {UART_RTS, UART_TXD, UART_DTR} = 0;
++`else
++assign {UART_RTS, UART_DTR} = 0;
++`endif
+ 
+ wire [3:0] hoffset, voffset;
+ wire [1:0] dial_x, dial_y;
+@@ -384,6 +400,8 @@
+ 
+ `ifndef JTFRAME_UART
+     assign game_tx = 1;
++`else
++    assign UART_TXD = game_tx;
+ `endif
+ 
+ `ifndef JTFRAME_SIGNED_SND
+@@ -398,6 +416,55 @@
+ wire        ln_done, ln_hs, ln_vs, ln_lvbl, ln_we;
+ wire [15:0] ln_dout, ln_pxl, ln_data;
+ 
++wire        mr_ddram_clk, mr_ddram_we, mr_ddram_rd;
++wire [ 7:0] mr_ddram_burstcnt, mr_ddram_be;
++wire [28:0] mr_ddram_addr;
++wire [63:0] mr_ddram_din;
++wire        tfb_en, tfb_we, tfb_frame;
++wire [ 8:0] tfb_x, tfb_y;
++wire [14:0] tfb_rgb;
++`ifdef JTFRAME_TWIN_FB
++wrally2_twin_fb u_twin_fb(
++    .clk            ( clk48          ),
++    .rst            ( rst48          ),
++    .en             ( tfb_en         ),
++    .pix_we         ( tfb_we         ),
++    .pix_x          ( tfb_x          ),
++    .pix_y          ( tfb_y          ),
++    .pix_rgb        ( tfb_rgb        ),
++    .pix_frame      ( tfb_frame      ),
++    .FB_EN          ( FB_EN          ),
++    .FB_FORMAT      ( FB_FORMAT      ),
++    .FB_WIDTH       ( FB_WIDTH       ),
++    .FB_HEIGHT      ( FB_HEIGHT      ),
++    .FB_BASE        ( FB_BASE        ),
++    .FB_STRIDE      ( FB_STRIDE      ),
++    .FB_VBL         ( FB_VBL         ),
++    .FB_LL          ( FB_LL          ),
++    .DDRAM_CLK      ( DDRAM_CLK      ),
++    .DDRAM_BUSY     ( DDRAM_BUSY     ),
++    .DDRAM_BURSTCNT ( DDRAM_BURSTCNT ),
++    .DDRAM_ADDR     ( DDRAM_ADDR     ),
++    .DDRAM_DIN      ( DDRAM_DIN      ),
++    .DDRAM_BE       ( DDRAM_BE       ),
++    .DDRAM_WE       ( DDRAM_WE       ),
++    .DDRAM_RD       ( DDRAM_RD       )
++);
++assign FB_FORCE_BLANK = 1'b0;
++assign FB_PAL_CLK     = 1'b0;
++assign FB_PAL_ADDR    = 8'd0;
++assign FB_PAL_DOUT    = 24'd0;
++assign FB_PAL_WR      = 1'b0;
++`else
++assign DDRAM_CLK      = mr_ddram_clk;
++assign DDRAM_BURSTCNT = mr_ddram_burstcnt;
++assign DDRAM_ADDR     = mr_ddram_addr;
++assign DDRAM_BE       = mr_ddram_be;
++assign DDRAM_WE       = mr_ddram_we;
++assign DDRAM_RD       = mr_ddram_rd;
++assign DDRAM_DIN      = mr_ddram_din;
++`endif
++
+ jtframe_mister #(
+     .SDRAMW         ( SDRAMW         ),
+     .BUTTONS        (`JTFRAME_BUTTONS),
+@@ -481,17 +549,16 @@
+     .FB_PAL_WR      ( FB_PAL_WR      ),
+     `endif
+ 
+-    // DDR interface
+-    .DDRAM_CLK      ( DDRAM_CLK      ), // same as clk_rom
+-    .DDRAM_BURSTCNT ( DDRAM_BURSTCNT ),
+-    .DDRAM_ADDR     ( DDRAM_ADDR     ),
+-    .DDRAM_BE       ( DDRAM_BE       ),
+-    .DDRAM_WE       ( DDRAM_WE       ),
+-    .DDRAM_BUSY     ( DDRAM_BUSY     ),
+-    .DDRAM_DOUT_READY(DDRAM_DOUT_READY ),
+-    .DDRAM_DOUT     ( DDRAM_DOUT     ),
+-    .DDRAM_RD       ( DDRAM_RD       ),
+-    .DDRAM_DIN      ( DDRAM_DIN      ),
++    .DDRAM_CLK      ( mr_ddram_clk      ),
++    .DDRAM_BURSTCNT ( mr_ddram_burstcnt ),
++    .DDRAM_ADDR     ( mr_ddram_addr     ),
++    .DDRAM_BE       ( mr_ddram_be       ),
++    .DDRAM_WE       ( mr_ddram_we       ),
++    .DDRAM_BUSY     ( DDRAM_BUSY        ),
++    .DDRAM_DOUT_READY(DDRAM_DOUT_READY  ),
++    .DDRAM_DOUT     ( DDRAM_DOUT        ),
++    .DDRAM_RD       ( mr_ddram_rd       ),
++    .DDRAM_DIN      ( mr_ddram_din      ),
+ 
+     // SDRAM interface
+     .SDRAM_CLK      ( SDRAM_CLK      ),
+--- a/modules/jtframe/target/mister/hdl/jtframe_mister.sv
++++ b/modules/jtframe/target/mister/hdl/jtframe_mister.sv
+@@ -919,8 +919,8 @@
+ `ifdef JTFRAME_TWIN_ARX
+ // wrally2 twin (status[14]) -> ARX 8:3 (two 4:3 monitors); everything else = core ARX (4:3).
+ // Gated by macro: other cores don't define JTFRAME_TWIN_ARX and take the `else`.
+-wire [12:0] freak_arx = status[14] ? 13'd8 : raw_arx;
+-wire [12:0] freak_ary = status[14] ? 13'd3 : raw_ary;
++wire [12:0] freak_arx = (status[14] & ~status[13]) ? 13'd8 : raw_arx;
++wire [12:0] freak_ary = (status[14] & ~status[13]) ? 13'd3 : raw_ary;
+ `else
+ wire [12:0] freak_arx = raw_arx;
+ wire [12:0] freak_ary = raw_ary;

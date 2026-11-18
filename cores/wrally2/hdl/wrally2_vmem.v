@@ -3,6 +3,7 @@
 module wrally2_vmem (
     input  wire        clk,
     input  wire        clk96,
+    input  wire        vbl_start,
 
     input  wire [15:0] cpu_addr,
     input  wire        cpu_uds, cpu_lds,
@@ -52,6 +53,7 @@ module wrally2_vmem (
     wire        s2_par  = spr2_a[0];
     wire [13:0] s2_hidx = spr2_a[14:1];
 
+`ifndef WRALLY2_VRAM_SHARE
     always @(posedge clk) begin
         if (vw_e_hi) ce_hi[hidx]<=cpu_wdata[15:8];
         if (vw_e_lo) ce_lo[hidx]<=cpu_wdata[7:0];
@@ -59,6 +61,7 @@ module wrally2_vmem (
         if (vw_o_lo) co_lo[hidx]<=cpu_wdata[7:0];
         cpu_vram_rdata <= par ? {co_hi[hidx], co_lo[hidx]} : {ce_hi[hidx], ce_lo[hidx]};
     end
+`endif
     always @(posedge clk) begin
         if (vw_e_hi) t0e_hi[hidx]<=cpu_wdata[15:8];
         if (vw_e_lo) t0e_lo[hidx]<=cpu_wdata[7:0];
@@ -75,6 +78,7 @@ module wrally2_vmem (
     end
 
     reg [7:0] we_hi_q, we_lo_q, wo_hi_q, wo_lo_q; reg w_par_q;
+`ifndef WRALLY2_VRAM_SHARE
     always @(posedge clk) begin
         if (vw_e_hi) we_hi[hidx]<=cpu_wdata[15:8];
         if (vw_e_lo) we_lo[hidx]<=cpu_wdata[7:0];
@@ -84,14 +88,72 @@ module wrally2_vmem (
         wo_hi_q <= wo_hi[w_hidx]; wo_lo_q <= wo_lo[w_hidx];
         w_par_q <= w_par;
     end
+`else
+
+    reg [7:0] ca_ehi, ca_elo, ca_ohi, ca_olo; reg ca_par;
+    always @(posedge clk) begin
+        if (vw_e_hi) begin we_hi[hidx] <= cpu_wdata[15:8]; ca_ehi <= cpu_wdata[15:8]; end else ca_ehi <= we_hi[hidx];
+        if (vw_e_lo) begin we_lo[hidx] <= cpu_wdata[ 7:0]; ca_elo <= cpu_wdata[ 7:0]; end else ca_elo <= we_lo[hidx];
+        if (vw_o_hi) begin wo_hi[hidx] <= cpu_wdata[15:8]; ca_ohi <= cpu_wdata[15:8]; end else ca_ohi <= wo_hi[hidx];
+        if (vw_o_lo) begin wo_lo[hidx] <= cpu_wdata[ 7:0]; ca_olo <= cpu_wdata[ 7:0]; end else ca_olo <= wo_lo[hidx];
+        ca_par <= par;
+    end
+    always @(*) cpu_vram_rdata = ca_par ? {ca_ohi, ca_olo} : {ca_ehi, ca_elo};
+    always @(posedge clk) begin
+        we_hi_q <= we_hi[w_hidx]; we_lo_q <= we_lo[w_hidx];
+        wo_hi_q <= wo_hi[w_hidx]; wo_lo_q <= wo_lo[w_hidx];
+        w_par_q <= w_par;
+    end
+`endif
     assign wrd_q = w_par_q ? {wo_hi_q, wo_lo_q} : {we_hi_q, we_lo_q};
+
+    wire [13:0] sw_idx; wire [15:0] sw_dat;
+    wire        sw_e_hi, sw_e_lo, sw_o_hi, sw_o_lo;
+`ifdef WRALLY2_SPR_LIVE
+    assign sw_idx = hidx; assign sw_dat = cpu_wdata;
+    assign sw_e_hi = vw_e_hi; assign sw_e_lo = vw_e_lo; assign sw_o_hi = vw_o_hi; assign sw_o_lo = vw_o_lo;
+`else
+    localparam integer QAW = 12, QDEPTH = 1 << QAW;
+    wire        vw_any = cpu_we & cs_vram & (cpu_uds | cpu_lds);
+    reg         vw_any_d = 1'b0;
+    reg  [32:0] q_in;
+    always @(posedge clk) begin
+        vw_any_d <= vw_any;
+        if (vw_any) q_in <= {par, hidx, cpu_uds, cpu_lds, cpu_wdata};
+    end
+    wire push = vw_any_d & ~vw_any;
+
+    (* ramstyle = "no_rw_check" *) reg [32:0] qmem [0:QDEPTH-1];
+    reg [QAW-1:0] wp = 0, rp = 0;
+    reg [QAW:0]   cnt = 0, due = 0;
+    reg  [32:0]   q_rd;
+    reg           pop_d = 1'b0;
+
+    wire pop = (cnt != 0) & ((due != 0) | (cnt >= QDEPTH-2));
+    wire [QAW:0] cnt_n = cnt + {{QAW{1'b0}}, push} - {{QAW{1'b0}}, pop};
+    always @(posedge clk) begin
+        if (push) begin qmem[wp] <= q_in; wp <= wp + 1'd1; end
+        if (pop)  begin q_rd <= qmem[rp]; rp <= rp + 1'd1; end
+        pop_d <= pop;
+        cnt   <= cnt_n;
+        if (vbl_start)               due <= cnt_n;
+        else if (pop && due != 0)    due <= due - 1'd1;
+    end
+    wire        d_par = q_rd[32];
+    assign sw_idx = q_rd[31:18];
+    assign sw_dat = q_rd[15:0];
+    assign sw_e_hi = pop_d & ~d_par & q_rd[17];
+    assign sw_e_lo = pop_d & ~d_par & q_rd[16];
+    assign sw_o_hi = pop_d &  d_par & q_rd[17];
+    assign sw_o_lo = pop_d &  d_par & q_rd[16];
+`endif
 
     reg [7:0] se_hi_q, se_lo_q, so_hi_q, so_lo_q; reg s_par_q;
     always @(posedge clk) begin
-        if (vw_e_hi) se_hi[hidx]<=cpu_wdata[15:8];
-        if (vw_e_lo) se_lo[hidx]<=cpu_wdata[7:0];
-        if (vw_o_hi) so_hi[hidx]<=cpu_wdata[15:8];
-        if (vw_o_lo) so_lo[hidx]<=cpu_wdata[7:0];
+        if (sw_e_hi) se_hi[sw_idx]<=sw_dat[15:8];
+        if (sw_e_lo) se_lo[sw_idx]<=sw_dat[7:0];
+        if (sw_o_hi) so_hi[sw_idx]<=sw_dat[15:8];
+        if (sw_o_lo) so_lo[sw_idx]<=sw_dat[7:0];
     end
     always @(posedge clk96) begin
         se_hi_q <= se_hi[s_hidx]; se_lo_q <= se_lo[s_hidx];
@@ -102,10 +164,10 @@ module wrally2_vmem (
 
     reg [7:0] s2e_hi_q, s2e_lo_q, s2o_hi_q, s2o_lo_q; reg s2_par_q;
     always @(posedge clk) begin
-        if (vw_e_hi) s2e_hi[hidx]<=cpu_wdata[15:8];
-        if (vw_e_lo) s2e_lo[hidx]<=cpu_wdata[7:0];
-        if (vw_o_hi) s2o_hi[hidx]<=cpu_wdata[15:8];
-        if (vw_o_lo) s2o_lo[hidx]<=cpu_wdata[7:0];
+        if (sw_e_hi) s2e_hi[sw_idx]<=sw_dat[15:8];
+        if (sw_e_lo) s2e_lo[sw_idx]<=sw_dat[7:0];
+        if (sw_o_hi) s2o_hi[sw_idx]<=sw_dat[15:8];
+        if (sw_o_lo) s2o_lo[sw_idx]<=sw_dat[7:0];
     end
     always @(posedge clk96) begin
         s2e_hi_q <= s2e_hi[s2_hidx]; s2e_lo_q <= s2e_lo[s2_hidx];
@@ -119,12 +181,23 @@ module wrally2_vmem (
     wire [11:0] pwo = cpu_addr[12:1];
     wire pw_hi = cpu_we & cs_pal & cpu_uds;
     wire pw_lo = cpu_we & cs_pal & cpu_lds;
+`ifndef WRALLY2_VRAM_SHARE
     always @(posedge clk) begin
         if (pw_hi) begin pc_hi[pwo]<=cpu_wdata[15:8]; pv_hi[pwo]<=cpu_wdata[15:8]; end
         if (pw_lo) begin pc_lo[pwo]<=cpu_wdata[7:0];  pv_lo[pwo]<=cpu_wdata[7:0];  end
         cpu_pal_rdata <= {pc_hi[pwo], pc_lo[pwo]};
         pal_q <= {pv_hi[pal_a], pv_lo[pal_a]};
     end
+`else
+
+    reg [7:0] pa_hi, pa_lo;
+    always @(posedge clk) begin
+        if (pw_hi) begin pv_hi[pwo] <= cpu_wdata[15:8]; pa_hi <= cpu_wdata[15:8]; end else pa_hi <= pv_hi[pwo];
+        if (pw_lo) begin pv_lo[pwo] <= cpu_wdata[ 7:0]; pa_lo <= cpu_wdata[ 7:0]; end else pa_lo <= pv_lo[pwo];
+    end
+    always @(*) cpu_pal_rdata = {pa_hi, pa_lo};
+    always @(posedge clk) pal_q <= {pv_hi[pal_a], pv_lo[pal_a]};
+`endif
 
 `ifdef WRALLY2_SCENE
 

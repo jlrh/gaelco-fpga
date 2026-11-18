@@ -31,7 +31,12 @@ module wrally2_video_top #(
     output wire        vblank_irq,
 
     input  wire        cpu_vwe,
-    input  wire [14:0] cpu_vaddr
+    input  wire [14:0] cpu_vaddr,
+
+    output wire        perf_tm_ovr,
+    output reg         perf_spr_ovr_tog,
+
+    output reg         perf_spr2_ovr_tog
 );
 
     wire [9:0] hpos; wire [8:0] vpos; wire frame_end;
@@ -61,6 +66,19 @@ module wrally2_video_top #(
         .rom_a1(rom_a1), .d1_p0(d1_p0), .d1_p1(d1_p1), .d1_p2(d1_p2), .d1_p3(d1_p3), .gfx1_ok(gfx1_ok),
         .pal_index(pal_index), .opaque(opaque), .tm_ovr(tm_ovr_w)
     );
+
+    wire [15:0] svreg0, svreg1;
+`ifdef WRALLY2_SPR_LIVE
+    assign svreg0 = vreg0; assign svreg1 = vreg1;
+`else
+    reg  [15:0] svreg0_r = 16'd0, svreg1_r = 16'd0;
+    reg         virq_d = 1'b0;
+    always @(posedge clk) begin
+        virq_d <= vblank_irq;
+        if (vblank_irq & ~virq_d) begin svreg0_r <= vreg0; svreg1_r <= vreg1; end
+    end
+    assign svreg0 = svreg0_r; assign svreg1 = svreg1_r;
+`endif
 
     reg [8:0] vpos_d;
     always @(posedge clk) vpos_d <= vpos;
@@ -95,6 +113,16 @@ module wrally2_video_top #(
         else     begin spr_start_l <= start_l; spr_start_r <= start_r; end
     end
 
+    wire spr_ovr_l, spr_ovr_r;
+    always @(posedge clk96 or posedge rst) begin
+        if (rst) begin perf_spr_ovr_tog <= 1'b0; perf_spr2_ovr_tog <= 1'b0; end
+        else begin
+            if (spr_ovr_l) perf_spr_ovr_tog  <= ~perf_spr_ovr_tog;
+            if (spr_ovr_r) perf_spr2_ovr_tog <= ~perf_spr2_ovr_tog;
+        end
+    end
+    assign perf_tm_ovr = tm_ovr_w;
+
     reg [9:0] hd [0:31];
     integer hh;
     always @(posedge clk) if (ce_pix) begin
@@ -111,22 +139,29 @@ module wrally2_video_top #(
     wrally2_gae1_sprite #(.LBDEPTH(1024)) u_spr_l (
         .clk(clk96), .ce(1'b1), .start(spr_start_l | spr_start_r), .line(render_line),
         .index(index), .twin(twin),
-        .vreg0(vreg0), .vreg1(vreg1), .busy(spr_busy_w),
+        .vreg0(svreg0), .vreg1(svreg1), .busy(spr_busy_w),
         .spr_a(spr_a), .spr_q(spr_q),
         .rom_a(rom_as), .d_p0(ds_p0), .d_p1(ds_p1), .d_p2(ds_p2), .d_p3(ds_p3), .gfx_ok(gfxs_ok),
         .lb_x(hpos_lb), .lb_q(lb_q_l),
         .wbank(wbank), .rbank(rbank)
     );
+    assign spr_ovr_l = (spr_start_l | spr_start_r) & spr_busy_w;
+    assign spr_ovr_r = 1'b0;
     assign lb_q_r  = 17'd0;
     assign rom_as2 = 22'd0;
     assign spr2_a  = 15'd0;
     assign lb_q    = lb_q_l;
 `else
 
+    wire spr_busy_l, spr_busy_r;
+    assign spr_busy_w = (spr_start_l & spr_busy_l) | (spr_start_r & spr_busy_r);
+    assign spr_ovr_l  = spr_start_l & spr_busy_l;
+    assign spr_ovr_r  = spr_start_r & spr_busy_r;
+
     wrally2_gae1_sprite u_spr_l (
         .clk(clk96), .ce(1'b1), .start(spr_start_l), .line(render_line),
         .index(1'b0), .twin(1'b0),
-        .vreg0(vreg0), .vreg1(vreg1), .busy(),
+        .vreg0(svreg0), .vreg1(svreg1), .busy(spr_busy_l),
         .spr_a(spr_a), .spr_q(spr_q),
         .rom_a(rom_as), .d_p0(ds_p0), .d_p1(ds_p1), .d_p2(ds_p2), .d_p3(ds_p3), .gfx_ok(gfxs_ok),
         .lb_x(lb_x_l), .lb_q(lb_q_l),
@@ -135,7 +170,7 @@ module wrally2_video_top #(
     wrally2_gae1_sprite u_spr_r (
         .clk(clk96), .ce(1'b1), .start(spr_start_r), .line(render_line),
         .index(1'b1), .twin(1'b0),
-        .vreg0(vreg0), .vreg1(vreg1), .busy(),
+        .vreg0(svreg0), .vreg1(svreg1), .busy(spr_busy_r),
         .spr_a(spr2_a), .spr_q(spr2_q),
         .rom_a(rom_as2), .d_p0(ds2_p0), .d_p1(ds2_p1), .d_p2(ds2_p2), .d_p3(ds2_p3), .gfx_ok(gfxs2_ok),
         .lb_x(lb_x_r), .lb_q(lb_q_r),

@@ -81,28 +81,36 @@ without the freeze).
 > coprocessor has no code and the game freezes a few seconds into play.
 
 ### World Rally 2: Twin Racing (Gaelco, 1995)
-**Type-2 core** (`gaelco2.cpp`, **GAE1** custom chip): **MC68000** + **DS5002FP** coprocessor, running at
-**13 MHz**. Two-player **dual-monitor** racing cabinet: the single GAE1 feeds two side-by-side screens,
-5 bpp tilemaps, analog wheels (ADC) and GAE1 stereo sound (samples in the gfx ROMs — no OKI).
+**Type-2 core** (`gaelco2.cpp`, **GAE1** custom chip): **MC68000** at 13 MHz + **DS5002FP** coprocessor
+(mc8051 core, 12 MHz as in Alligator Hunt). Two-player **dual-monitor** racing cabinet: the single GAE1
+feeds two side-by-side screens, 5 bpp tilemaps, analog wheels (ADC) and GAE1 stereo sound (samples in the
+gfx ROMs — no OKI).
 
 **Status: playable on MiSTer** — boot, video, audio, DS5002 coprocessor and gameplay validated on
-hardware. The DS5002 is implemented with the **mc8051** core (Oregano). The CPU/MCU run at a faithful
-**13/13 MHz** (fractional cen). The OSD **"Monitor"** option selects **Left / Right / Twin**: single
-monitors are 384×240 (4:3); **Twin** is 768 wide (two 4:3 monitors) shown at **8:3 automatically**.
-Default is **Left** (single, 4:3) so it is playable from boot on a normal monitor/CRT.
+hardware. Prebuilt **`ffwrally2_20261117.rbf`** in [`releases/`](releases/) — distributable, validated on
+hardware (2026-11-18).
+
+OSD options:
+- **Monitor**: **Left** / **Right** (one cabinet, 384×240, 4:3) / **Twin** (both cabinets side by side,
+  768 wide, shown at **8:3 automatically**) / **Twin HDMI+VGA** (**one cabinet per MiSTer output**:
+  left cabinet on the analog VGA output, right cabinet on HDMI, each 4:3). Default is **Left**.
+- **Audio**: **Stereo** (cabinet 1 left speaker, cabinet 2 right, as in MAME) / **Monitor** (follows the
+  Monitor option: Left or Right plays that cabinet on both speakers, Twin is stereo) / **Mix**.
+- **Control Type** (1 Stick / 2 Sticks / Triggers / Wheel), **Steering** (Ramp / Pot + spring / Pot
+  free) and **Ramp speed**: each cabinet is steered independently.
 
 The DS5002 firmware is **loaded at runtime from the `.mra`** — **no firmware is included in this repo** and
-**none is baked into the bitstream**. Prebuilt `wrally2_20260701.rbf` in [`releases/`](releases/) —
-**distributable**, **validated playable on MiSTer**. To build from source (`cores/wrally2/`) apply
-`tools/patch_twin_arx.py` (automatic 8:3 aspect in Twin) and compile with `WR2_CEN_FRAC=1` (13/13 MHz) —
-see [`BUILD.md`](BUILD.md). Unlike World Rally / Alligator, **no DS5002 address patch is needed** (the core
-is `SDRAM_LARGE`, so the firmware loads at runtime from the `.mra` without patching).
-> ✅ The `.mra` (**V.014**) builds the 16 MB gfx bank **entirely from the standard `wrally2.zip`** via
-> `<interleave>` directives — **no custom gfx blob** is needed. (Earlier drafts used a pre-built
-> `wrally2_gfx.zip`; that is no longer required.) Video and sound validated on hardware.
+**none is baked into the bitstream**. The `.mra` builds the gfx banks **entirely from the standard merged
+`wrally2.zip`** (files inside their clone folders, e.g. `wrally2a/wr2_ic68.ic68`) via `<interleave>`.
+The `.mra` and the `.rbf` go together: this `.mra` does not work with older `.rbf` files.
 > ⚠️ The romset **must contain the DS5002 firmware** (`wrally2_ds5002fp_sram.bin`); without it the
 > coprocessor has no code and the game does not boot.
 > 🖥️ **Do not ship a `config/wrally2.CFG`**: the factory default (no CFG) boots Left / Original / Normal.
+> 📺 Twin HDMI+VGA needs a display on each output (VGA through the MiSTer analog I/O board or an
+> adapter, HDMI as usual). With `dvi_mode=1` in `MiSTer.ini` HDMI has no audio.
+
+To build from source see [`BUILD.md`](BUILD.md#world-rally-2-coreswrally2): jtframe needs one patch
+(`cores/wrally2/patches/`).
 
 ### Big Karnak (Gaelco, 1991)
 The **earliest Gaelco** in this collection and the **simplest** (board REF.901112-1, **Unprotected — no
@@ -195,10 +203,11 @@ The cores are playable/working; the items below are polish and do not block game
 
 ### World Rally 2
 - ✅ **Playable on MiSTer** (validated on hardware): boot, video, audio, DS5002 coprocessor, gameplay.
-- ✅ **Dual-monitor**: OSD "Monitor" = Left / Right / Twin; Twin (768) shows at **8:3 automatically**. Default = Left (single 4:3).
-- ✅ CPU/MCU at faithful **13/13 MHz** (fractional cen, `WR2_CEN_FRAC`).
+- ✅ **Dual-monitor**: OSD "Monitor" = Left / Right / Twin (8:3 automatically) / **Twin HDMI+VGA** (one cabinet per output).
+- ✅ Sprites are drawn from a copy of the sprite list taken in vblank (as the real board does): fixes the split headlight beam at night.
 - DS5002 firmware loaded at runtime from the `.mra` (no firmware in this repo, none baked in the bitstream).
-- Prebuilt `wrally2_20260701.rbf` in [`releases/`](releases/) — distributable, validated playable on MiSTer.
+- Prebuilt `ffwrally2_20261117.rbf` in [`releases/`](releases/) — distributable, validated on hardware.
+- ⚠️ Real potentiometer wheel not yet tested on hardware (joystick/keyboard steering validated).
 - ⚠️ Minor known cosmetic issue: in the cliff area a few grass sprites draw over the rocks (sprite priority vs MAME); does not affect gameplay.
 
 ## Credits
@@ -288,29 +297,38 @@ distribuible sin el freeze).
 > coprocesador no tiene código y el juego se congela a los pocos segundos de partida.
 
 ### World Rally 2: Twin Racing (Gaelco, 1995)
-**Core Tipo-2** (`gaelco2.cpp`, chip custom **GAE1**): **MC68000** + coprocesador **DS5002FP** a **13 MHz**.
-Recreativa de carreras de 2 jugadores con **doble monitor**: un único GAE1 alimenta dos pantallas lado a
-lado, tilemaps de 5 bpp, volantes analógicos (ADC) y sonido estéreo del GAE1 (samples en las ROMs de gfx —
-sin OKI).
+**Core Tipo-2** (`gaelco2.cpp`, chip custom **GAE1**): **MC68000** a 13 MHz + coprocesador **DS5002FP**
+(core mc8051, a 12 MHz como en Alligator Hunt). Recreativa de carreras de 2 jugadores con **doble
+monitor**: un único GAE1 alimenta dos pantallas lado a lado, tilemaps de 5 bpp, volantes analógicos (ADC)
+y sonido estéreo del GAE1 (samples en las ROMs de gfx — sin OKI).
 
 **Estado: jugable en MiSTer** — arranque, vídeo, audio, coprocesador DS5002 y partida validados en
-hardware. El DS5002 se implementa con el core **mc8051** (Oregano). CPU/MCU a **13/13 MHz** fiel (cen
-fraccional). La opción de OSD **"Monitor"** elige **Left / Right / Twin**: los monitores individuales son
-384×240 (4:3); **Twin** son 768 de ancho (dos monitores 4:3) mostrados a **8:3 automáticamente**. Por
-defecto arranca en **Left** (individual 4:3) para que sea jugable desde el arranque en un monitor/CRT normal.
+hardware. `.rbf` precompilado **`ffwrally2_20261117.rbf`** en [`releases/`](releases/) — distribuible,
+validado en placa (2026-11-18).
+
+Opciones del OSD:
+- **Monitor**: **Left** / **Right** (una cabina, 384×240, 4:3) / **Twin** (las dos cabinas lado a lado,
+  768 de ancho, a **8:3 automáticamente**) / **Twin HDMI+VGA** (**una cabina por cada salida de la
+  MiSTer**: la izquierda por la salida analógica VGA y la derecha por HDMI, cada una 4:3). Por defecto
+  **Left**.
+- **Audio**: **Stereo** (cabina 1 por el altavoz izquierdo, cabina 2 por el derecho, como MAME) /
+  **Monitor** (sigue a la opción Monitor: Left o Right suenan por los dos altavoces, Twin en estéreo) /
+  **Mix**.
+- **Control Type** (1 Stick / 2 Sticks / Triggers / Wheel), **Steering** (Ramp / Pot + spring / Pot
+  free) y **Ramp speed**: cada cabina gira de forma independiente.
 
 El firmware del DS5002 se **carga en runtime desde el `.mra`** — **no se incluye firmware en este repo** y
-**no va horneado en el bitstream**. `.rbf` precompilado `wrally2_20260701.rbf` en [`releases/`](releases/) —
-**distribuible**, **validado jugable en MiSTer**. Para compilar desde fuente (`cores/wrally2/`) aplica
-`tools/patch_twin_arx.py` (8:3 automático en Twin) y compila con `WR2_CEN_FRAC=1` (13/13 MHz) — ver
-[`BUILD.md`](BUILD.md). A diferencia de World Rally / Alligator, **no hace falta parche de dirección del
-DS5002** (el core es `SDRAM_LARGE`, así que el firmware carga en runtime desde el `.mra` sin parchear).
-> ✅ El `.mra` (**V.014**) construye el banco de gfx de 16 MB **enteramente desde el `wrally2.zip` estándar**
-> con directivas `<interleave>` — **no hace falta ningún blob de gfx**. (Borradores anteriores usaban un
-> `wrally2_gfx.zip` pre-generado; ya no es necesario.) Vídeo y sonido validados en hardware.
+**no va horneado en el bitstream**. El `.mra` construye los bancos de gfx **enteramente desde el
+`wrally2.zip` merged estándar** (ficheros en sus carpetas de clon, p.ej. `wrally2a/wr2_ic68.ic68`) con
+`<interleave>`. El `.mra` y el `.rbf` van juntos: este `.mra` no funciona con `.rbf` anteriores.
 > ⚠️ El romset **debe contener el firmware del DS5002** (`wrally2_ds5002fp_sram.bin`); sin él el
 > coprocesador no tiene código y el juego no arranca.
 > 🖥️ **No distribuir un `config/wrally2.CFG`**: el default de fábrica (sin CFG) arranca en Left / Original / Normal.
+> 📺 Twin HDMI+VGA necesita una pantalla en cada salida (VGA por la placa de I/O analógica o un adaptador,
+> HDMI como siempre). Con `dvi_mode=1` en `MiSTer.ini` el HDMI va sin audio.
+
+Para compilar desde fuente ver [`BUILD.md`](BUILD.md#world-rally-2-coreswrally2-1): jtframe necesita un
+parche (`cores/wrally2/patches/`).
 
 ### Big Karnak (Gaelco, 1991)
 El **Gaelco más antiguo** de esta colección y el **más sencillo** (placa REF.901112-1, **sin protección —
@@ -394,6 +412,15 @@ Los cores son jugables/funcionales; lo de abajo es pulido y no bloquea la partid
 - Firmware del DS5002 cargado en runtime desde el `.mra` (sin firmware en el repo, sin hornear en el bitstream).
 - `.rbf` precompilado `aligator_20260714.rbf` en [`releases/`](releases/) — distribuible, validado jugable en MiSTer.
   Compilar desde fuente requiere **los dos** `tools/patch_dallas_runtime.py` (PROM del programa en runtime) + `tools/patch_scratch_runtime.py` (SCRATCH de datos en runtime).
+
+### World Rally 2
+- ✅ **Jugable en MiSTer** (validado en hardware): arranque, vídeo, audio, coprocesador DS5002, partida.
+- ✅ **Doble monitor**: OSD "Monitor" = Left / Right / Twin (8:3 automático) / **Twin HDMI+VGA** (una cabina por salida).
+- ✅ Los sprites se dibujan desde una copia de la lista tomada en el vblank (como la placa real): arregla el haz de los faros partido de noche.
+- Firmware del DS5002 cargado en runtime desde el `.mra` (sin firmware en el repo, sin hornear en el bitstream).
+- `.rbf` precompilado `ffwrally2_20261117.rbf` en [`releases/`](releases/) — distribuible, validado en placa.
+- ⚠️ Volante real de potenciómetro aún sin probar en hardware (dirección por joystick/teclado validada).
+- ⚠️ Detalle cosmético menor: en la zona del acantilado algunos sprites de hierba se dibujan sobre las rocas (prioridad de sprites vs MAME); no afecta a la partida.
 
 ## Créditos
 
@@ -493,7 +520,6 @@ hacen falta estas piezas, que se distribuyen desde su propio origen:
 | fx68k — MC68000 (CPU principal): fx68k.sv, fx68kAlu.sv, uaddrPla.sv | [https://github.com/jtfpga/fx68k](https://github.com/jtfpga/fx68k) | `modules/fx68k` |
 | mc8051 — DS5002FP (coprocesador de proteccion): core mc8051 de Oregano Systems, distribuido dentro de jtframe. cores/wrally2/hdl/mc8051_regen.v es su regeneracion VHDL->Verilog (ghdl) vendorizada localmente. | [https://github.com/jotego/jtframe](https://github.com/jotego/jtframe) | `modules/jtframe/hdl/cpu/8051` |
 <!-- /omf_release:dependencias:ffwrally2 -->
-
 <!-- omf_release:dependencias:ffwrally -->
 ## Dependencias externas de `ffwrally`
 

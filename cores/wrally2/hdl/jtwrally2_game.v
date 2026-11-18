@@ -2,12 +2,24 @@
 
 module jtwrally2_game(
     `include "jtframe_game_ports.inc"
-
-    ,input  wire        scr_dl_clk
-    ,input  wire [14:0] scr_dl_addr
-    ,input  wire [ 7:0] scr_dl_data
-    ,input  wire        scr_dl_we
 );
+
+    wire        scr_dl_clk = clk;
+    wire [14:0] scr_dl_addr;
+    wire [ 7:0] scr_dl_data;
+    wire        scr_dl_we;
+    jtframe_ioctl_range #(
+        .AW     ( 15                    ),
+        .OFFSET ( `JTFRAME_PROM_START   )
+    ) u_scr_range (
+        .clk      ( clk              ),
+        .addr     ( prog_addr[21:0]  ),
+        .addr_rel ( scr_dl_addr      ),
+        .en       ( prom_we          ),
+        .inrange  ( scr_dl_we        ),
+        .din      ( prog_data        ),
+        .dout     ( scr_dl_data      )
+    );
 
     wire clkg = clk48;
 
@@ -17,16 +29,26 @@ module jtwrally2_game(
     wire disp_twin = 1'b0;  wire disp_index = 1'b1;
 `else
     wire disp_twin  = status[14];
-    wire disp_index = status[13];
+    wire disp_index = status[13] & ~status[14];
+`endif
+
+`ifdef JTFRAME_TWIN_FB
+    wire disp_tfb = status[14] & status[13];
+`else
+    wire disp_tfb = 1'b0;
 `endif
 
     reg [2:0] pxdiv = 3'd0;
     wire [2:0] pxmax = disp_twin ? 3'd2 : 3'd5;
     always @(posedge clkg) pxdiv <= (pxdiv>=pxmax) ? 3'd0 : pxdiv + 3'd1;
-    assign pxl_cen  = (pxdiv==3'd0);
+    wire   pxl_cen_n = (pxdiv==3'd0);
 
-    assign pxl2_cen = disp_twin ? (pxdiv==3'd1) : ((pxdiv==3'd0) || (pxdiv==3'd3));
+    wire   pxl2_cen_n = disp_twin ? (pxdiv==3'd1) : ((pxdiv==3'd0) || (pxdiv==3'd3));
     wire ce_pix = (pxdiv==3'd0);
+
+    wire tfb_ce;
+    assign pxl_cen  = disp_tfb ? tfb_ce : pxl_cen_n;
+    assign pxl2_cen = disp_tfb ? ce_pix : pxl2_cen_n;
 
 `ifdef WR2_CEN_FRAC
     reg [5:0] mcuacc = 6'd0;
@@ -66,6 +88,10 @@ module jtwrally2_game(
 
     wire [15:0] dbg_mcu_pcmax, dbg_mcu_fetch, dbg_mcuw, dbg_mcu_scrw;
     wire [ 7:0] dbg_key;
+
+    wire [23:1] perf_eab; wire perf_asn; wire [2:0] perf_fc;
+    wire        perf_rwn; wire [1:0] perf_dsn; wire [15:0] perf_wdata;
+    wire        perf_tm_ovr, perf_spr_ovr_tog, perf_spr2_ovr_tog;
     wire signed [15:0] snd_l, snd_r; wire snd_sample_w;
 
 `ifdef WRALLY2_SCENE
@@ -78,14 +104,35 @@ module jtwrally2_game(
     wire [15:0] vv0 = vreg0, vv1 = vreg1, vv2 = vreg2;
 `endif
 
+    wire [7:0] steer1, steer2;
+    wire [1:0] steer_mode = status[27:26]==2'd3 ? 2'd0 : status[27:26];
+    ff_drivectrl #(
+        .CENTER(8'h8A), .LIM(8'h2B), .ANA_MUL(8'd43), .ANA_DZ(8'd2), .STEP_UNIT(8'd2)
+    ) u_drive1 (
+        .rst(rst), .clk(clkg), .LVBL(LVBL),
+        .joystick1({1'b1, joystick1[5:0]}), .joyana_l1(joyana_l1), .joyana_r1(joyana_r1),
+        .ctrl_type(status[25:24]), .steer_mode(steer_mode), .ramp_spd(status[29:28]),
+        .steer(steer1), .accel(), .brake(), .brk_mag(), .shift(), .optical(), .opt_cnt()
+    );
+    ff_drivectrl #(
+        .CENTER(8'h8A), .LIM(8'h2B), .ANA_MUL(8'd43), .ANA_DZ(8'd2), .STEP_UNIT(8'd2)
+    ) u_drive2 (
+        .rst(rst), .clk(clkg), .LVBL(LVBL),
+        .joystick1({1'b1, joystick2[5:0]}), .joyana_l1(joyana_l2), .joyana_r1(joyana_r2),
+        .ctrl_type(status[25:24]), .steer_mode(steer_mode), .ramp_spd(status[29:28]),
+        .steer(steer2), .accel(), .brake(), .brk_mag(), .shift(), .optical(), .opt_cnt()
+    );
+    wire [7:0] wheel_adc1 = 8'h14 - steer1;
+    wire [7:0] wheel_adc2 = 8'h14 - steer2;
+
     wrally2_main u_main (
         .clk(clkg), .rst(cpu_rst), .game_run(dip_pause),
         .vblank_irq(vblank_irq),
         .prog_addr(rom68k_addr), .prog_cs(main_cs), .prog_data(main_data), .prog_data_ok(main_ok),
         .in0(in0), .in1(in1), .in2(in2), .in3(in3),
 
-        .paddle0({~joyana_l1[7], joyana_l1[6:0]}),
-        .paddle1({~joyana_l2[7], joyana_l2[6:0]}),
+        .paddle0(wheel_adc1),
+        .paddle1(wheel_adc2),
         .flip_screen(flip_screen),
         .vmem_addr(vmem_addr), .vmem_uds(vmem_uds), .vmem_lds(vmem_lds), .vmem_we(vmem_we),
         .vmem_cs_vram(vmem_cs_vram), .vmem_cs_pal(vmem_cs_pal),
@@ -97,6 +144,9 @@ module jtwrally2_game(
 
         .dbg_mcu_pcmax(dbg_mcu_pcmax), .dbg_mcu_fetch(dbg_mcu_fetch),
         .dbg_mcuw(dbg_mcuw), .dbg_mcu_scrw(dbg_mcu_scrw), .dbg_key(dbg_key),
+
+        .dbg_eab(perf_eab), .dbg_asn(perf_asn), .dbg_fc(perf_fc),
+        .dbg_rwn(perf_rwn), .dbg_dsn(perf_dsn), .dbg_wdata(perf_wdata),
 
         .scr_dl_clk(scr_dl_clk), .scr_dl_addr(scr_dl_addr), .scr_dl_data(scr_dl_data), .scr_dl_we(scr_dl_we)
     );
@@ -117,8 +167,14 @@ module jtwrally2_game(
     wire [14:0] spr_a;  wire [15:0] spr_q;
     wire [14:0] spr2_a; wire [15:0] spr2_q;
     wire [11:0] pal_a;  wire [15:0] pal_q;
+
+    wire vblank_irq;
+    reg  vblank_irq_d;
+    always @(posedge clkg) vblank_irq_d <= vblank_irq;
+    wire vbl_start = vblank_irq & ~vblank_irq_d;
     wrally2_vmem u_vmem (
         .clk(clkg), .clk96(clk96),
+        .vbl_start(vbl_start),
         .cpu_addr(vmem_addr), .cpu_uds(vmem_uds), .cpu_lds(vmem_lds), .cpu_we(vmem_we),
         .cs_vram(vmem_cs_vram), .cs_pal(vmem_cs_pal),
         .cpu_wdata(vmem_wdata),
@@ -129,7 +185,6 @@ module jtwrally2_game(
         .pal_a(pal_a), .pal_q(pal_q)
     );
 
-    wire vblank_irq;
     wire hs_w, vs_w, hb_w, vb_w, de_w;
     wire [21:0] rom_a0, rom_a1, rom_as, rom_as2;
     wire [4:0] r5, g5, b5;
@@ -149,7 +204,8 @@ module jtwrally2_game(
         .hsync(hs_w), .vsync(vs_w), .hblank(hb_w), .vblank(vb_w), .de(de_w),
         .vblank_irq(vblank_irq),
 
-        .cpu_vwe(vmem_we & vmem_cs_vram), .cpu_vaddr(vmem_addr[14:0])
+        .cpu_vwe(vmem_we & vmem_cs_vram), .cpu_vaddr(vmem_addr[14:0]),
+        .perf_tm_ovr(perf_tm_ovr), .perf_spr_ovr_tog(perf_spr_ovr_tog), .perf_spr2_ovr_tog(perf_spr2_ovr_tog)
     );
 
     assign gfx0_addr = rom_a0;
@@ -166,6 +222,24 @@ module jtwrally2_game(
 
     assign gfxs2_addr = rom_as2; assign gfxs2_cs = disp_twin | disp_index;
 
+`ifdef JTFRAME_TWIN_FB
+    wire [4:0] r_s, g_s, b_s; wire hs_s, vs_s, hb_s, vb_s;
+    wrally2_twin_split u_twin_split (
+        .clk(clkg), .en(disp_tfb), .ce16(ce_pix),
+        .r_i(r5), .g_i(g5), .b_i(b5), .hb_i(hb_w), .vb_i(vb_w), .hs_i(hs_w), .vs_i(vs_w),
+        .r_o(r_s), .g_o(g_s), .b_o(b_s), .hb_o(hb_s), .vb_o(vb_s), .hs_o(hs_s), .vs_o(vs_s), .ce_o(tfb_ce),
+        .tfb_we(tfb_we), .tfb_x(tfb_x), .tfb_y(tfb_y), .tfb_rgb(tfb_rgb), .tfb_frame(tfb_frame)
+    );
+    assign tfb_en = disp_tfb;
+    assign red   = r_s;
+    assign green = g_s;
+    assign blue  = b_s;
+    assign HS    = hs_s;
+    assign VS    = vs_s;
+    assign LHBL  = ~hb_s;
+    assign LVBL  = ~vb_s;
+`else
+    assign tfb_ce = ce_pix;
     assign red   = r5;
     assign green = g5;
     assign blue  = b5;
@@ -173,12 +247,39 @@ module jtwrally2_game(
     assign VS    = vs_w;
     assign LHBL  = ~hb_w;
     assign LVBL  = ~vb_w;
+`endif
 
-    assign snd_left  = snd_l;
-    assign snd_right = snd_r;
+    wire signed [15:0] cab1 = snd_r, cab2 = snd_l;
+    wire signed [16:0] cab_sum = {cab1[15], cab1} + {cab2[15], cab2};
+    wire signed [15:0] cab_mix = cab_sum[16:1];
+    wire [1:0] aud_mode = status[19:18];
+    wire       aud_mono1 = aud_mode == 2'd1 && !status[14] && !status[13];
+    wire       aud_mono2 = aud_mode == 2'd1 && !status[14] &&  status[13];
+    assign snd_left  = aud_mode == 2'd2 ? cab_mix : aud_mono2 ? cab2 : cab1;
+    assign snd_right = aud_mode == 2'd2 ? cab_mix : aud_mono1 ? cab1 : cab2;
     assign sample    = snd_sample_w;
 
+`ifdef WRALLY2_PERF
+    wire [7:0] perf_view; wire perf_txd;
+`ifdef JTFRAME_TWIN_FB
+    wire perf_tfb_frame = tfb_frame, perf_tfb_vbl = tfb_vbl;
+`else
+    wire perf_tfb_frame = 1'b0,      perf_tfb_vbl = 1'b0;
+`endif
+    wrally2_perf u_perf (
+        .clk(clkg), .rst(rst), .frame(vblank_irq),
+        .eab(perf_eab), .asn(perf_asn), .fc(perf_fc),
+        .rwn(perf_rwn), .dsn(perf_dsn), .wdata(perf_wdata),
+        .tm_ovr(perf_tm_ovr), .spr_ovr_tog(perf_spr_ovr_tog), .spr2_ovr_tog(perf_spr2_ovr_tog),
+        .debug_bus(debug_bus),
+        .joy1(joystick1[5:0]), .joy2(joystick2[5:0]), .tfb_frame(perf_tfb_frame), .tfb_vbl(perf_tfb_vbl),
+        .debug_view(perf_view), .txd(perf_txd)
+    );
+    assign debug_view = perf_view;
+`else
     assign debug_view = 8'd0;
+`endif
+
     assign dip_flip   = 1'b0;
 
 `ifdef JTFRAME_GAME_UART
@@ -192,6 +293,7 @@ module jtwrally2_game(
     wire [23:0] dbg_68k_pcmax = {4'd0, tl_pamax, 1'b0};
 
     wire tl_pkt_start;
+    wire tl_txd;
     wire [8*16-1:0] tl_data = {
         8'h0A,
         8'd0,
@@ -204,8 +306,14 @@ module jtwrally2_game(
         8'hAA, 8'h55 };
     localparam integer UART_NB = 16;
     wrally2_dbg_uart #(.NB(UART_NB), .DIV(5000)) u_dbg_uart (
-        .clk(clkg), .rst(rst), .data(tl_data), .pkt_start(tl_pkt_start), .txd(uart_tx)
+        .clk(clkg), .rst(rst), .data(tl_data), .pkt_start(tl_pkt_start), .txd(tl_txd)
     );
+
+`ifdef WRALLY2_PERF
+    assign uart_tx = perf_txd;
+`else
+    assign uart_tx = tl_txd;
+`endif
 `ifdef SIMULATION
 
     integer tlk;

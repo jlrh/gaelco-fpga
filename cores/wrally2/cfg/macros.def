@@ -19,7 +19,11 @@ JTFRAME_UART
 
 JTFRAME_BA1_START=0x100000
 
-JTFRAME_PROM_START=0x1100000
+JTFRAME_BA2_START=0x1100000
+
+JTFRAME_BA3_START=0x2100000
+
+JTFRAME_PROM_START=0x3100000
 
 [mister]
 JTFRAME_ARX=4
@@ -29,4 +33,4 @@ JTFRAME_TWIN_ARX
 
 JTFRAME_OSD_NOLOGO
 
-CORE_OSD=ODE,Monitor,Left,Right,Twin;
+CORE_OSD=ODE,Monitor,Left,Right,Twin,Twin HDMI+VGA;OIJ,Audio,Stereo,Monitor,Mix;-;OOP,Control Type,1 Stick,2 Sticks,Triggers,Wheel;OQR,Steering,Ramp,Pot + spring,Pot (free);OST,Ramp speed,Normal,Slow,Fast,Faster;

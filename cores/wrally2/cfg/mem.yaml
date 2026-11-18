@@ -7,11 +7,14 @@ sdram:
     - buses:
         - { name: gfx0, addr_width: 24, data_width: 32 }
         - { name: gfx1, addr_width: 24, data_width: 32 }
-        - { name: gfxs, addr_width: 24, data_width: 32 }
-
-        - { name: gfxs2, addr_width: 24, data_width: 32 }
 
         - { name: snd,  addr_width: 24, data_width: 32 }
+
+    - buses:
+        - { name: gfxs2, addr_width: 24, data_width: 32 }
+
+    - buses:
+        - { name: gfxs, addr_width: 24, data_width: 32 }
 
 bram:
 

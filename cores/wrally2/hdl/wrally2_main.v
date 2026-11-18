@@ -44,7 +44,14 @@ module wrally2_main (
     output wire [15:0] dbg_mcu_fetch,
     output wire [15:0] dbg_mcuw,
     output wire [15:0] dbg_mcu_scrw,
-    output wire [ 7:0] dbg_key
+    output wire [ 7:0] dbg_key,
+
+    output wire [23:1] dbg_eab,
+    output wire        dbg_asn,
+    output wire [ 2:0] dbg_fc,
+    output wire        dbg_rwn,
+    output wire [ 1:0] dbg_dsn,
+    output wire [15:0] dbg_wdata
 );
 
     wire [23:1] eab;
@@ -312,6 +319,12 @@ module wrally2_main (
     assign dbg_mcuw      = tl_mcuw;
     assign dbg_mcu_scrw  = tl_mcu_scrw;
     assign dbg_key       = tl_key;
+    assign dbg_eab       = eab;
+    assign dbg_asn       = ASn;
+    assign dbg_fc        = fc;
+    assign dbg_rwn       = eRWn;
+    assign dbg_dsn       = {UDSn, LDSn};
+    assign dbg_wdata     = oEdb;
 
 `ifdef SIMULATION
 

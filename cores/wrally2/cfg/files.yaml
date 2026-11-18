@@ -5,9 +5,13 @@ wrally2:
 
     - wrally2_main.v
     - wrally2_dbg_uart.v
+    - wrally2_perf.v
+    - wrally2_twin_split.v
+    - wrally2_twin_fb.v
     - wrally2_addr_decode.v
     - wrally2_inputs.v
     - wrally2_adc.v
+    - ff_drivectrl.v
     - wrally2_vmem.v
 
     - wrally2_video_timing.v
@@ -27,3 +31,5 @@ wrally2:
     - wrally2_mcu.v
     - mc8051_regen.v
     - jtframe_ram_rst.v
+
+    - wrally2_clk48_96.sdc

@@ -28,6 +28,36 @@
             <part name="wrally2a/wr2_ic68.ic68" map="1000"/>
         </interleave>
         <part repeat="0x400000">00</part>
+        <interleave output="32">
+            <part name="wrally2a/wr2_ic69.ic69" length="0x200000" map="0012"/>
+            <part name="wrally2a/wr2_ic70.ic70" map="1200"/>
+        </interleave>
+        <interleave output="32">
+            <part name="wrally2a/wr2_ic69.ic69" offset="0x200000" length="0x200000" map="0012"/>
+            <part name="wrally2a/wr2_ic70.ic70" map="1200"/>
+        </interleave>
+        <interleave output="32">
+            <part name="wrally2a/wr2_ic68.ic68" map="0001"/>
+            <part name="wrally2a/wr2_ic68.ic68" map="0010"/>
+            <part name="wrally2a/wr2_ic68.ic68" map="0100"/>
+            <part name="wrally2a/wr2_ic68.ic68" map="1000"/>
+        </interleave>
+        <part repeat="0x400000">00</part>
+        <interleave output="32">
+            <part name="wrally2a/wr2_ic69.ic69" length="0x200000" map="0012"/>
+            <part name="wrally2a/wr2_ic70.ic70" map="1200"/>
+        </interleave>
+        <interleave output="32">
+            <part name="wrally2a/wr2_ic69.ic69" offset="0x200000" length="0x200000" map="0012"/>
+            <part name="wrally2a/wr2_ic70.ic70" map="1200"/>
+        </interleave>
+        <interleave output="32">
+            <part name="wrally2a/wr2_ic68.ic68" map="0001"/>
+            <part name="wrally2a/wr2_ic68.ic68" map="0010"/>
+            <part name="wrally2a/wr2_ic68.ic68" map="0100"/>
+            <part name="wrally2a/wr2_ic68.ic68" map="1000"/>
+        </interleave>
+        <part repeat="0x400000">00</part>
         <part name="wrally2b/wrally2_ds5002fp_sram.bin" crc="4c532e9e"/>
     </rom>
     <switches default="ff,ff" base="16">
