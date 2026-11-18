@@ -39,3 +39,9 @@ Desktop.ini
 
 # Excepción: el .rbf distribuible precompilado SÍ va al repo
 !releases/*.rbf
+
+# Excepción: datos que el HDL lee con $readmem y no son ROM del juego (micro/nanorom del fx68k, GPLv3;
+# tabla de volumen del GAE1 calculada con una fórmula)
+!cores/wrally2/hdl/microrom.mem
+!cores/wrally2/hdl/nanorom.mem
+!cores/wrally2/hdl/volume_table.mem
